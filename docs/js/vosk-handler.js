@@ -22,37 +22,39 @@ class VoskHandler {
       ...config
     };
     
-    // Available models - Using local hosted model for English (CORS-friendly)
+    // Available models - Using locally hosted models (in /docs/models/ folder)
     this.availableModels = [
-  {
-    name: 'English (Small - 40MB)',
-    code: 'vosk-model-small-en-us-0.15',
-    url: '/notes-app/models/vosk-model-small-en-us-0.15.zip',
-    size: '40MB',
-    language: 'en'
-  },
-  {
-    name: 'French (Small - 41MB)',
-    code: 'vosk-model-small-fr-0.22',
-    url: '/notes-app/models/vosk-model-small-fr-0.22.zip',  // ← Change this
-    size: '41MB',
-    language: 'fr'
-  },
-  {
-    name: 'Portuguese (Small - 31MB)',
-    code: 'vosk-model-small-pt-0.3',
-    url: '/notes-app/models/vosk-model-small-pt-0.3.zip',  // ← Change this
-    size: '31MB',
-    language: 'pt'
-  },
-  {
-    name: 'Mandarin Chinese (Small - 42MB)',
-    code: 'vosk-model-small-cn-0.22',
-    url: '/notes-app/models/vosk-model-small-cn-0.22.zip',  // ← Change this
-    size: '42MB',
-    language: 'zh'
+      {
+        name: 'English (Small - 40MB)',
+        code: 'vosk-model-small-en-us-0.15',
+        url: 'models/vosk-model-small-en-us-0.15.zip',  // Relative path from /docs/
+        size: '40MB',
+        language: 'en'
+      },
+      {
+        name: 'French (Small - 41MB)',
+        code: 'vosk-model-small-fr-0.22',
+        url: 'models/vosk-model-small-fr-0.22.zip',
+        size: '41MB',
+        language: 'fr'
+      },
+      {
+        name: 'Portuguese (Small - 31MB)',
+        code: 'vosk-model-small-pt-0.3',
+        url: 'models/vosk-model-small-pt-0.3.zip',
+        size: '31MB',
+        language: 'pt'
+      },
+      {
+        name: 'Chinese (Small - 42MB)',
+        code: 'vosk-model-small-cn-0.22',
+        url: 'models/vosk-model-small-cn-0.22.zip',
+        size: '42MB',
+        language: 'zh'
+      }
+    ];
   }
-];
+  
   /**
    * Get list of available models
    */
@@ -67,7 +69,7 @@ class VoskHandler {
    */
   async loadModel(modelUrl, progressCallback = null) {
     try {
-      this.updateStatus('loading', 'Downloading model... This may take 30-60 seconds');
+      this.updateStatus('loading', 'Loading model... This may take 10-30 seconds');
       
       if (!window.Vosk) {
         throw new Error('Vosk library not loaded. Please include vosk-browser script.');
