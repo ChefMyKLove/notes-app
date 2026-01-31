@@ -8,6 +8,61 @@
 </head>
 <body>
   <div class="app-container">
+    <!-- Accessibility Toolbar (Fixed at top) -->
+    <div id="accessibilityToolbar" class="accessibility-toolbar">
+      <div class="toolbar-section">
+        <button id="darkModeToggle" class="toolbar-btn" title="Toggle Dark Mode (Ctrl+Alt+D)" aria-label="Toggle dark mode">
+          <span class="btn-icon">🌙</span>
+        </button>
+        
+        <button id="zoomIn" class="toolbar-btn" title="Zoom In (Ctrl++)">
+          <span class="btn-icon">🔍+</span>
+        </button>
+        
+        <button id="zoomOut" class="toolbar-btn" title="Zoom Out (Ctrl+-)">
+          <span class="btn-icon">🔍-</span>
+        </button>
+        
+        <button id="resetZoom" class="toolbar-btn" title="Reset Zoom (Ctrl+0)">
+          <span class="btn-icon">↺</span>
+        </button>
+        
+        <button id="toggleMagnifier" class="toolbar-btn" title="Toggle Magnifier (Ctrl+Alt+M)">
+          <span class="btn-icon">🔬</span>
+        </button>
+      </div>
+      
+      <div class="toolbar-section">
+        <select id="languageSelect" class="toolbar-select" title="Select Language" aria-label="Select language">
+          <option value="en-US">🇺🇸 English</option>
+          <option value="fr-FR">🇫🇷 French</option>
+          <option value="pt-BR">🇧🇷 Portuguese</option>
+          <option value="zh-CN">🇨🇳 Mandarin</option>
+        </select>
+      </div>
+      
+      <div class="toolbar-section">
+        <button id="readTextBtn" class="toolbar-btn" title="Read Text (Ctrl+Alt+R)" aria-label="Read selected text or note">
+          <span class="btn-icon">🔊</span>
+          <span class="btn-text">Read</span>
+        </button>
+        
+        <button id="pauseReadBtn" class="toolbar-btn" title="Pause/Resume (Ctrl+Alt+P)" aria-label="Pause or resume reading" disabled>
+          <span class="btn-icon">⏸️</span>
+        </button>
+        
+        <button id="stopReadBtn" class="toolbar-btn" title="Stop Reading (Ctrl+Alt+S)" aria-label="Stop reading" disabled>
+          <span class="btn-icon">⏹️</span>
+        </button>
+      </div>
+      
+      <div class="toolbar-section">
+        <button id="ttsSettings" class="toolbar-btn" title="Text-to-Speech Settings">
+          <span class="btn-icon">⚙️</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Auth Container -->
     <div id="authContainer" class="auth-container">
       <div class="auth-card">
@@ -19,16 +74,16 @@
           <form id="loginFormElement">
             <div class="form-group">
               <label for="loginUsername">Username</label>
-              <input type="text" id="loginUsername" placeholder="Enter your username" required>
+              <input type="text" id="loginUsername" placeholder="Enter your username" required aria-required="true">
             </div>
             <div class="form-group">
               <label for="loginPassword">Password</label>
-              <input type="password" id="loginPassword" placeholder="Enter your password" required>
+              <input type="password" id="loginPassword" placeholder="Enter your password" required aria-required="true">
             </div>
             <button type="submit" class="btn btn-primary">Login</button>
           </form>
           <p class="auth-switch">Don't have an account? <a href="#" onclick="switchAuthForm('register'); return false;">Register</a></p>
-          <div id="loginError" class="error-message"></div>
+          <div id="loginError" class="error-message" role="alert"></div>
         </div>
 
         <!-- Register Form -->
@@ -37,20 +92,20 @@
           <form id="registerFormElement">
             <div class="form-group">
               <label for="registerUsername">Username</label>
-              <input type="text" id="registerUsername" placeholder="Choose a username" required>
+              <input type="text" id="registerUsername" placeholder="Choose a username" required aria-required="true">
             </div>
             <div class="form-group">
               <label for="registerEmail">Email</label>
-              <input type="email" id="registerEmail" placeholder="Enter your email" required>
+              <input type="email" id="registerEmail" placeholder="Enter your email" required aria-required="true">
             </div>
             <div class="form-group">
               <label for="registerPassword">Password</label>
-              <input type="password" id="registerPassword" placeholder="Create a password" required>
+              <input type="password" id="registerPassword" placeholder="Create a password" required aria-required="true">
             </div>
             <button type="submit" class="btn btn-primary">Register</button>
           </form>
           <p class="auth-switch">Already have an account? <a href="#" onclick="switchAuthForm('login'); return false;">Login</a></p>
-          <div id="registerError" class="error-message"></div>
+          <div id="registerError" class="error-message" role="alert"></div>
         </div>
       </div>
     </div>
@@ -58,27 +113,27 @@
     <!-- Main App Container -->
     <div id="appContainer" class="app-main hidden">
       <!-- Sidebar -->
-      <aside class="sidebar">
+      <aside class="sidebar" role="navigation" aria-label="Notes navigation">
         <div class="sidebar-header">
           <h1>Notes</h1>
-          <button id="logoutBtn" class="btn btn-secondary" title="Logout">Logout</button>
+          <button id="logoutBtn" class="btn btn-secondary" title="Logout" aria-label="Logout">Logout</button>
         </div>
         
         <div class="sidebar-user">
           <p>Welcome, <strong id="currentUser">User</strong></p>
         </div>
 
-        <button id="newNoteBtn" class="btn btn-primary btn-full">
+        <button id="newNoteBtn" class="btn btn-primary btn-full" aria-label="Create new note">
           + New Note
         </button>
 
-        <div id="notesList" class="notes-list">
+        <div id="notesList" class="notes-list" role="list" aria-label="Your notes">
           <!-- Notes will be populated here -->
         </div>
       </aside>
 
       <!-- Main Content Area -->
-      <main class="main-content">
+      <main class="main-content" role="main">
         <!-- Empty State -->
         <div id="emptyState" class="empty-state">
           <div class="empty-state-content">
@@ -92,26 +147,26 @@
         <div id="vosk-controls" class="speech-controls">
           <div class="control-header">
             <h3>🎤 Voice Input (Offline)</h3>
-            <span id="vosk-status-indicator" class="status-dot"></span>
+            <span id="vosk-status-indicator" class="status-dot" aria-live="polite"></span>
           </div>
           
           <div class="model-selector">
             <label for="vosk-model-select">Language Model:</label>
-            <select id="vosk-model-select" disabled>
+            <select id="vosk-model-select" disabled aria-label="Select voice input language model">
               <option value="">Loading models...</option>
             </select>
             <button id="load-model-btn" disabled>Load Selected Model</button>
           </div>
           
           <div class="recognition-controls">
-            <button id="vosk-mic-btn" type="button" disabled title="Load a model first">
+            <button id="vosk-mic-btn" type="button" disabled title="Load a model first" aria-label="Start voice recording">
               <span class="btn-icon">🎤</span>
               <span class="btn-text">Start Recording</span>
             </button>
           </div>
           
-          <div id="vosk-status" class="status-message"></div>
-          <div id="vosk-partial" class="partial-result"></div>
+          <div id="vosk-status" class="status-message" aria-live="polite"></div>
+          <div id="vosk-partial" class="partial-result" aria-live="polite"></div>
         </div>
 
         <!-- Editor -->
@@ -123,32 +178,33 @@
               class="note-title-input" 
               placeholder="Note Title" 
               maxlength="255"
+              aria-label="Note title"
             >
             <div class="editor-actions">
-              <button id="saveBtn" class="btn btn-primary">Save</button>
-              <button id="deleteBtn" class="btn btn-danger">Delete</button>
-              <button id="cancelBtn" class="btn btn-secondary">Cancel</button>
+              <button id="saveBtn" class="btn btn-primary" aria-label="Save note">Save</button>
+              <button id="deleteBtn" class="btn btn-danger" aria-label="Delete note">Delete</button>
+              <button id="cancelBtn" class="btn btn-secondary" aria-label="Cancel editing">Cancel</button>
             </div>
           </div>
           
           <div class="editor-body">
             <!-- Rich Text Formatting Toolbar -->
-            <div class="editor-toolbar">
-              <button type="button" class="format-btn" data-command="bold" title="Bold (Ctrl+B)">B</button>
-              <button type="button" class="format-btn" data-command="italic" title="Italic (Ctrl+I)">I</button>
-              <button type="button" class="format-btn" data-command="underline" title="Underline (Ctrl+U)">U</button>
+            <div class="editor-toolbar" role="toolbar" aria-label="Text formatting">
+              <button type="button" class="format-btn" data-command="bold" title="Bold (Ctrl+B)" aria-label="Bold">B</button>
+              <button type="button" class="format-btn" data-command="italic" title="Italic (Ctrl+I)" aria-label="Italic">I</button>
+              <button type="button" class="format-btn" data-command="underline" title="Underline (Ctrl+U)" aria-label="Underline">U</button>
               <div class="toolbar-divider"></div>
-              <button type="button" class="format-btn" data-command="formatBlock" data-value="h1" title="Heading 1">H1</button>
-              <button type="button" class="format-btn" data-command="formatBlock" data-value="h2" title="Heading 2">H2</button>
-              <button type="button" class="format-btn" data-command="formatBlock" data-value="h3" title="Heading 3">H3</button>
-              <button type="button" class="format-btn" data-command="formatBlock" data-value="p" title="Paragraph">P</button>
+              <button type="button" class="format-btn" data-command="formatBlock" data-value="h1" title="Heading 1" aria-label="Heading 1">H1</button>
+              <button type="button" class="format-btn" data-command="formatBlock" data-value="h2" title="Heading 2" aria-label="Heading 2">H2</button>
+              <button type="button" class="format-btn" data-command="formatBlock" data-value="h3" title="Heading 3" aria-label="Heading 3">H3</button>
+              <button type="button" class="format-btn" data-command="formatBlock" data-value="p" title="Paragraph" aria-label="Paragraph">P</button>
               <div class="toolbar-divider"></div>
-              <button type="button" class="format-btn" data-command="insertUnorderedList" title="Bullet List">• List</button>
-              <button type="button" class="format-btn" data-command="insertOrderedList" title="Numbered List">1. List</button>
+              <button type="button" class="format-btn" data-command="insertUnorderedList" title="Bullet List" aria-label="Bullet list">• List</button>
+              <button type="button" class="format-btn" data-command="insertOrderedList" title="Numbered List" aria-label="Numbered list">1. List</button>
               <div class="toolbar-divider"></div>
-              <button type="button" class="format-btn" data-command="createLink" title="Add Link">Link</button>
-              <button type="button" class="format-btn" data-command="undo" title="Undo">↶</button>
-              <button type="button" class="format-btn" data-command="redo" title="Redo">↷</button>
+              <button type="button" class="format-btn" data-command="createLink" title="Add Link" aria-label="Add link">Link</button>
+              <button type="button" class="format-btn" data-command="undo" title="Undo" aria-label="Undo">↶</button>
+              <button type="button" class="format-btn" data-command="redo" title="Redo" aria-label="Redo">↷</button>
             </div>
             
             <!-- Rich Text Editor Area -->
@@ -159,22 +215,59 @@
               data-placeholder="Start typing your note..."
               role="textbox"
               aria-label="Note content"
+              aria-multiline="true"
             ></div>
             
             <div class="char-count">
               <span id="charCounter">0</span> / 10000 characters
             </div>
             
-            <div id="noteError" class="error-message"></div>
+            <div id="noteError" class="error-message" role="alert"></div>
           </div>
         </div>
       </main>
+    </div>
+    
+    <!-- TTS Settings Modal -->
+    <div id="ttsModal" class="modal hidden" role="dialog" aria-labelledby="ttsModalTitle" aria-modal="true">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="ttsModalTitle">Text-to-Speech Settings</h2>
+          <button id="closeTtsModal" class="close-btn" aria-label="Close settings">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="ttsRate">Speed: <span id="rateValue">1.0</span>x</label>
+            <input type="range" id="ttsRate" min="0.5" max="2.0" step="0.1" value="1.0" aria-label="Speech rate">
+          </div>
+          
+          <div class="form-group">
+            <label for="ttsPitch">Pitch: <span id="pitchValue">1.0</span></label>
+            <input type="range" id="ttsPitch" min="0.5" max="2.0" step="0.1" value="1.0" aria-label="Speech pitch">
+          </div>
+          
+          <div class="form-group">
+            <label for="ttsVolume">Volume: <span id="volumeValue">100</span>%</label>
+            <input type="range" id="ttsVolume" min="0" max="1" step="0.1" value="1.0" aria-label="Speech volume">
+          </div>
+          
+          <div class="form-group">
+            <label for="voiceSelect">Voice:</label>
+            <select id="voiceSelect" aria-label="Select voice"></select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="testTtsBtn" class="btn btn-secondary">Test Voice</button>
+          <button id="saveTtsBtn" class="btn btn-primary">Save Settings</button>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Scripts -->
   <script defer src="https://cdn.jsdelivr.net/npm/vosk-browser@0.0.8/dist/vosk.js"></script>
   <script defer src="js/vosk-handler.js"></script>
+  <script defer src="js/accessibility-handler.js"></script>
   <script defer src="js/app.js"></script>
 </body>
 </html>

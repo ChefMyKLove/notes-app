@@ -24,15 +24,35 @@ class VoskHandler {
     
     // Available models - Using local hosted model for English (CORS-friendly)
     this.availableModels = [
-      {
-        name: 'English (Small - 40MB)',
-        code: 'vosk-model-small-en-us-0.15',
-        url: '/Notepad/models/vosk-model-small-en-us-0.15.zip',  // Locally hosted
-        size: '40MB',
-        language: 'en'
-      }
-    ];
-  }  
+  {
+    name: 'English (Small - 40MB)',
+    code: 'vosk-model-small-en-us-0.15',
+    url: '/notes-app/models/vosk-model-small-en-us-0.15.zip',
+    size: '40MB',
+    language: 'en'
+  },
+  {
+    name: 'French (Small - 41MB)',
+    code: 'vosk-model-small-fr-0.22',
+    url: '/notes-app/models/vosk-model-small-fr-0.22.zip',  // ← Change this
+    size: '41MB',
+    language: 'fr'
+  },
+  {
+    name: 'Portuguese (Small - 31MB)',
+    code: 'vosk-model-small-pt-0.3',
+    url: '/notes-app/models/vosk-model-small-pt-0.3.zip',  // ← Change this
+    size: '31MB',
+    language: 'pt'
+  },
+  {
+    name: 'Mandarin Chinese (Small - 42MB)',
+    code: 'vosk-model-small-cn-0.22',
+    url: '/notes-app/models/vosk-model-small-cn-0.22.zip',  // ← Change this
+    size: '42MB',
+    language: 'zh'
+  }
+];
   /**
    * Get list of available models
    */

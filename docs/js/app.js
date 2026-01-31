@@ -46,6 +46,15 @@ window.switchAuthForm = function(formType) {
     }
   }
 };
+let accessibilityHandler = null;
+
+// TTS Settings
+let ttsSettings = {
+  rate: 1.0,
+  pitch: 1.0,
+  volume: 1.0,
+  selectedVoice: null
+};
 
 // ==========================================
 // STATE MANAGEMENT
@@ -66,6 +75,10 @@ let newNoteBtn, notesList, emptyState, editor;
 let noteTitle, noteContent, charCount;
 let saveBtn, deleteBtn, cancelBtn;
 let noteError, loginError, registerError;
+let darkModeToggle, zoomIn, zoomOut, resetZoom, toggleMagnifier;
+let languageSelect, readTextBtn, pauseReadBtn, stopReadBtn, ttsSettingsBtn;
+let ttsModal, closeTtsModal, ttsRate, ttsPitch, ttsVolume, voiceSelect;
+let testTtsBtn, saveTtsBtn;
 
 // ==========================================
 // INITIALIZATION
@@ -94,6 +107,31 @@ document.addEventListener('DOMContentLoaded', () => {
   noteError = document.getElementById('noteError');
   loginError = document.getElementById('loginError');
   registerError = document.getElementById('registerError');
+  darkModeToggle = document.getElementById('darkModeToggle');
+  // Initializae accessibility elements
+zoomIn = document.getElementById('zoomIn');
+zoomOut = document.getElementById('zoomOut');
+resetZoom = document.getElementById('resetZoom');
+toggleMagnifier = document.getElementById('toggleMagnifier');
+languageSelect = document.getElementById('languageSelect');
+readTextBtn = document.getElementById('readTextBtn');
+pauseReadBtn = document.getElementById('pauseReadBtn');
+stopReadBtn = document.getElementById('stopReadBtn');
+ttsSettingsBtn = document.getElementById('ttsSettings');
+ttsModal = document.getElementById('ttsModal');
+closeTtsModal = document.getElementById('closeTtsModal');
+ttsRate = document.getElementById('ttsRate');
+ttsPitch = document.getElementById('ttsPitch');
+ttsVolume = document.getElementById('ttsVolume');
+voiceSelect = document.getElementById('voiceSelect');
+testTtsBtn = document.getElementById('testTtsBtn');
+saveTtsBtn = document.getElementById('saveTtsBtn');
+// Initialize accessibility after delay
+setTimeout(initializeAccessibility, 500);
+
+// Set up accessibility event listeners
+setupAccessibilityListeners();
+
 
   // Set up event listeners
   loginFormElement.addEventListener('submit', handleLogin);
@@ -613,3 +651,620 @@ function appendTextToNote(text) {
     updateCharacterCount();
   }
 }
+/**
+ * Accessibility Handler
+ * Manages text-to-speech, zoom, magnifier, and accessibility features
+ */
+
+class AccessibilityHandler {
+  constructor(config = {}) {
+    this.config = {
+      defaultLanguage: 'en-US',
+      defaultRate: 1.0,
+      defaultPitch: 1.0,
+      defaultVolume: 1.0,
+      onError: config.onError || ((error) => console.error('Accessibility Error:', error)),
+      onStatusChange: config.onStatusChange || ((status) => console.log('Status:', status)),
+      ...config
+    };
+    
+    // Text-to-Speech
+    this.synth = window.speechSynthesis;
+    this.currentUtterance = null;
+    this.isReading = false;
+    this.isPaused = false;
+    
+    // Zoom/Magnification
+    this.currentZoomLevel = 100;
+    this.minZoom = 50;
+    this.maxZoom = 300;
+    
+    // Magnifier
+    this.magnifierActive = false;
+    this.magnifierElement = null;
+    this.magnifierZoom = 2;
+    
+    // Language settings
+    this.currentLanguage = this.config.defaultLanguage;
+    this.availableVoices = [];
+    
+    // Initialize
+    this.init();
+  }
+  
+  /**
+   * Initialize accessibility features
+   */
+  init() {
+    // Load voices
+    if (this.synth) {
+      this.loadVoices();
+      
+      // Chrome loads voices asynchronously
+      if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = () => this.loadVoices();
+      }
+    }
+    
+    // Load saved preferences
+    this.loadPreferences();
+    
+    // Set up keyboard shortcuts
+    this.setupKeyboardShortcuts();
+  }
+  
+  /**
+   * Load available voices
+   */
+  loadVoices() {
+    this.availableVoices = this.synth.getVoices();
+    console.log(`Loaded ${this.availableVoices.length} voices`);
+  }
+  
+  /**
+   * Get voices by language
+   */
+  getVoicesByLanguage(languageCode) {
+    return this.availableVoices.filter(voice => 
+      voice.lang.startsWith(languageCode)
+    );
+  }
+  
+  /**
+   * Get all supported languages with available voices
+   */
+  getSupportedLanguages() {
+    return [
+      { code: 'en-US', name: 'English (US)', flag: '🇺🇸' },
+      { code: 'en-GB', name: 'English (UK)', flag: '🇬🇧' },
+      { code: 'fr-FR', name: 'French', flag: '🇫🇷' },
+      { code: 'pt-BR', name: 'Portuguese (Brazil)', flag: '🇧🇷' },
+      { code: 'pt-PT', name: 'Portuguese (Portugal)', flag: '🇵🇹' },
+      { code: 'zh-CN', name: 'Mandarin (Simplified)', flag: '🇨🇳' },
+      { code: 'zh-TW', name: 'Mandarin (Traditional)', flag: '🇹🇼' },
+      { code: 'es-ES', name: 'Spanish', flag: '🇪🇸' },
+      { code: 'de-DE', name: 'German', flag: '🇩🇪' },
+      { code: 'ja-JP', name: 'Japanese', flag: '🇯🇵' }
+    ];
+  }
+  
+  /**
+   * Text-to-Speech: Read text aloud
+   */
+  readText(text, options = {}) {
+    if (!this.synth) {
+      this.config.onError(new Error('Speech synthesis not supported'));
+      return false;
+    }
+    
+    // Stop current reading
+    this.stopReading();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Set voice based on language
+    const voices = this.getVoicesByLanguage(options.language || this.currentLanguage);
+    if (voices.length > 0) {
+      utterance.voice = voices[0];
+    }
+    
+    // Set speech parameters
+    utterance.rate = options.rate || this.config.defaultRate;
+    utterance.pitch = options.pitch || this.config.defaultPitch;
+    utterance.volume = options.volume || this.config.defaultVolume;
+    utterance.lang = options.language || this.currentLanguage;
+    
+    // Event handlers
+    utterance.onstart = () => {
+      this.isReading = true;
+      this.config.onStatusChange({ state: 'reading', message: 'Reading text...' });
+    };
+    
+    utterance.onend = () => {
+      this.isReading = false;
+      this.isPaused = false;
+      this.config.onStatusChange({ state: 'stopped', message: 'Reading complete' });
+    };
+    
+    utterance.onerror = (event) => {
+      this.isReading = false;
+      this.config.onError(new Error(`Speech error: ${event.error}`));
+    };
+    
+    this.currentUtterance = utterance;
+    this.synth.speak(utterance);
+    
+    return true;
+  }
+  
+  /**
+   * Pause reading
+   */
+  pauseReading() {
+    if (this.synth && this.isReading) {
+      this.synth.pause();
+      this.isPaused = true;
+      this.config.onStatusChange({ state: 'paused', message: 'Reading paused' });
+    }
+  }
+  
+  /**
+   * Resume reading
+   */
+  resumeReading() {
+    if (this.synth && this.isPaused) {
+      this.synth.resume();
+      this.isPaused = false;
+      this.config.onStatusChange({ state: 'reading', message: 'Reading resumed' });
+    }
+  }
+  
+  /**
+   * Stop reading
+   */
+  stopReading() {
+    if (this.synth) {
+      this.synth.cancel();
+      this.isReading = false;
+      this.isPaused = false;
+      this.config.onStatusChange({ state: 'stopped', message: 'Reading stopped' });
+    }
+  }
+  
+  /**
+   * Set language
+   */
+  setLanguage(languageCode) {
+    this.currentLanguage = languageCode;
+    localStorage.setItem('accessibility_language', languageCode);
+    this.config.onStatusChange({ 
+      state: 'language_changed', 
+      message: `Language set to ${languageCode}` 
+    });
+  }
+  
+  /**
+   * Zoom functions
+   */
+  setZoom(level) {
+    if (level < this.minZoom || level > this.maxZoom) {
+      return false;
+    }
+    
+    this.currentZoomLevel = level;
+    document.documentElement.style.fontSize = `${level}%`;
+    localStorage.setItem('accessibility_zoom', level);
+    
+    this.config.onStatusChange({ 
+      state: 'zoom_changed', 
+      message: `Zoom set to ${level}%` 
+    });
+    
+    return true;
+  }
+  
+  increaseZoom(step = 10) {
+    return this.setZoom(this.currentZoomLevel + step);
+  }
+  
+  decreaseZoom(step = 10) {
+    return this.setZoom(this.currentZoomLevel - step);
+  }
+  
+  resetZoom() {
+    return this.setZoom(100);
+  }
+  
+  /**
+   * Screen Magnifier
+   */
+  toggleMagnifier() {
+    if (this.magnifierActive) {
+      this.deactivateMagnifier();
+    } else {
+      this.activateMagnifier();
+    }
+  }
+  
+  activateMagnifier() {
+    if (this.magnifierActive) return;
+    
+    // Create magnifier element
+    this.magnifierElement = document.createElement('div');
+    this.magnifierElement.id = 'screen-magnifier';
+    this.magnifierElement.style.cssText = `
+      position: fixed;
+      width: 200px;
+      height: 200px;
+      border: 3px solid #3498db;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10000;
+      display: none;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    `;
+    
+    const magnifierContent = document.createElement('div');
+    magnifierContent.id = 'magnifier-content';
+    magnifierContent.style.cssText = `
+      position: absolute;
+      transform-origin: top left;
+    `;
+    
+    this.magnifierElement.appendChild(magnifierContent);
+    document.body.appendChild(this.magnifierElement);
+    
+    // Mouse move handler
+    this.magnifierMoveHandler = (e) => {
+      const magnifier = this.magnifierElement;
+      const content = magnifierContent;
+      
+      // Position magnifier
+      magnifier.style.left = (e.pageX - 100) + 'px';
+      magnifier.style.top = (e.pageY - 100) + 'px';
+      magnifier.style.display = 'block';
+      
+      // Clone and magnify content
+      const x = e.pageX;
+      const y = e.pageY;
+      
+      content.style.transform = `scale(${this.magnifierZoom})`;
+      content.style.left = (-x * this.magnifierZoom + 100) + 'px';
+      content.style.top = (-y * this.magnifierZoom + 100) + 'px';
+      content.style.width = (document.documentElement.scrollWidth) + 'px';
+      content.style.height = (document.documentElement.scrollHeight) + 'px';
+      
+      // Copy page content
+      if (!content.hasChildNodes()) {
+        const clone = document.body.cloneNode(true);
+        // Remove the magnifier itself from clone
+        const magnifierClone = clone.querySelector('#screen-magnifier');
+        if (magnifierClone) magnifierClone.remove();
+        content.appendChild(clone);
+      }
+    };
+    
+    document.addEventListener('mousemove', this.magnifierMoveHandler);
+    
+    this.magnifierActive = true;
+    this.config.onStatusChange({ 
+      state: 'magnifier_active', 
+      message: 'Screen magnifier activated' 
+    });
+  }
+  
+  deactivateMagnifier() {
+    if (!this.magnifierActive) return;
+    
+    if (this.magnifierMoveHandler) {
+      document.removeEventListener('mousemove', this.magnifierMoveHandler);
+    }
+    
+    if (this.magnifierElement) {
+      this.magnifierElement.remove();
+      this.magnifierElement = null;
+    }
+    
+    this.magnifierActive = false;
+    this.config.onStatusChange({ 
+      state: 'magnifier_inactive', 
+      message: 'Screen magnifier deactivated' 
+    });
+  }
+  
+  /**
+   * Keyboard shortcuts
+   */
+  setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+      // Ctrl/Cmd + Alt + R: Read selected text or current note
+      if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === 'r') {
+        e.preventDefault();
+        this.readSelectedOrNote();
+      }
+      
+      // Ctrl/Cmd + Alt + S: Stop reading
+      if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === 's') {
+        e.preventDefault();
+        this.stopReading();
+      }
+      
+      // Ctrl/Cmd + Alt + P: Pause/Resume reading
+      if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === 'p') {
+        e.preventDefault();
+        if (this.isPaused) {
+          this.resumeReading();
+        } else {
+          this.pauseReading();
+        }
+      }
+      
+      // Ctrl/Cmd + Plus: Zoom in
+      if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) {
+        e.preventDefault();
+        this.increaseZoom();
+      }
+      
+      // Ctrl/Cmd + Minus: Zoom out
+      if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+        e.preventDefault();
+        this.decreaseZoom();
+      }
+      
+      // Ctrl/Cmd + 0: Reset zoom
+      if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+        e.preventDefault();
+        this.resetZoom();
+      }
+      
+      // Ctrl/Cmd + Alt + M: Toggle magnifier
+      if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === 'm') {
+        e.preventDefault();
+        this.toggleMagnifier();
+      }
+    });
+  }
+  
+  /**
+   * Read selected text or current note content
+   */
+  readSelectedOrNote() {
+    const selection = window.getSelection().toString();
+    
+    if (selection) {
+      this.readText(selection);
+    } else {
+      // Read current note content
+      const noteContent = document.getElementById('noteContent');
+      if (noteContent) {
+        const text = noteContent.textContent || noteContent.innerText;
+        if (text.trim()) {
+          this.readText(text);
+        }
+      }
+    }
+  }
+  
+  /**
+   * Load saved preferences
+   */
+  loadPreferences() {
+    const savedLanguage = localStorage.getItem('accessibility_language');
+    if (savedLanguage) {
+      this.currentLanguage = savedLanguage;
+    }
+    
+    const savedZoom = localStorage.getItem('accessibility_zoom');
+    if (savedZoom) {
+      this.setZoom(parseInt(savedZoom));
+    }
+  }
+  
+  /**
+   * Check browser support
+   */
+  static checkSupport() {
+    const errors = [];
+    
+    if (!window.speechSynthesis) {
+      errors.push('Speech synthesis not supported');
+    }
+    
+    return {
+      supported: errors.length === 0,
+      errors,
+      features: {
+        textToSpeech: !!window.speechSynthesis,
+        zoom: true,
+        magnifier: true
+      }
+    };
+  }
+}
+
+// Export for use in other modules
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = AccessibilityHandler;
+}
+function initializeAccessibility() {
+  if (typeof AccessibilityHandler === 'undefined') {
+    console.warn('AccessibilityHandler not loaded');
+    return;
+  }
+  
+  accessibilityHandler = new AccessibilityHandler({
+    onError: (error) => {
+      console.error('Accessibility error:', error);
+    },
+    onStatusChange: (status) => {
+      console.log('Accessibility status:', status);
+      
+      // Update UI based on status
+      if (status.state === 'reading') {
+        readTextBtn.disabled = true;
+        pauseReadBtn.disabled = false;
+        stopReadBtn.disabled = false;
+      } else if (status.state === 'paused') {
+        pauseReadBtn.querySelector('.btn-icon').textContent = '▶️';
+      } else if (status.state === 'stopped') {
+        readTextBtn.disabled = false;
+        pauseReadBtn.disabled = true;
+        stopReadBtn.disabled = true;
+        pauseReadBtn.querySelector('.btn-icon').textContent = '⏸️';
+      }
+    }
+  });
+  
+  // Load saved dark mode preference
+  const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+  if (savedDarkMode) {
+    document.body.classList.add('dark-mode');
+    darkModeToggle.classList.add('active');
+    darkModeToggle.querySelector('.btn-icon').textContent = '☀️';
+  }
+  
+  // Populate voice select
+  populateVoiceSelect();
+}
+
+function setupAccessibilityListeners() {
+  // Dark Mode Toggle
+  darkModeToggle?.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDark);
+    darkModeToggle.classList.toggle('active', isDark);
+    darkModeToggle.querySelector('.btn-icon').textContent = isDark ? '☀️' : '🌙';
+  });
+  
+  // Zoom Controls
+  zoomIn?.addEventListener('click', () => accessibilityHandler?.increaseZoom());
+  zoomOut?.addEventListener('click', () => accessibilityHandler?.decreaseZoom());
+  resetZoom?.addEventListener('click', () => accessibilityHandler?.resetZoom());
+  
+  // Magnifier
+  toggleMagnifier?.addEventListener('click', () => {
+    accessibilityHandler?.toggleMagnifier();
+    toggleMagnifier.classList.toggle('active');
+  });
+  
+  // Language Selection
+  languageSelect?.addEventListener('change', (e) => {
+    accessibilityHandler?.setLanguage(e.target.value);
+    populateVoiceSelect();
+  });
+  
+  // TTS Controls
+  readTextBtn?.addEventListener('click', () => {
+    const selection = window.getSelection().toString();
+    const text = selection || noteContent?.textContent || '';
+    
+    if (text.trim()) {
+      accessibilityHandler?.readText(text, {
+        language: languageSelect.value,
+        rate: ttsSettings.rate,
+        pitch: ttsSettings.pitch,
+        volume: ttsSettings.volume
+      });
+    }
+  });
+  
+  pauseReadBtn?.addEventListener('click', () => {
+    if (accessibilityHandler?.isPaused) {
+      accessibilityHandler.resumeReading();
+    } else {
+      accessibilityHandler?.pauseReading();
+    }
+  });
+  
+  stopReadBtn?.addEventListener('click', () => {
+    accessibilityHandler?.stopReading();
+  });
+  
+  // TTS Settings Modal
+  ttsSettingsBtn?.addEventListener('click', () => {
+    ttsModal?.classList.remove('hidden');
+  });
+  
+  closeTtsModal?.addEventListener('click', () => {
+    ttsModal?.classList.add('hidden');
+  });
+  
+  // Click outside modal to close
+  ttsModal?.addEventListener('click', (e) => {
+    if (e.target === ttsModal) {
+      ttsModal.classList.add('hidden');
+    }
+  });
+  
+  // TTS Setting Ranges
+  ttsRate?.addEventListener('input', (e) => {
+    const value = parseFloat(e.target.value);
+    document.getElementById('rateValue').textContent = value.toFixed(1);
+    ttsSettings.rate = value;
+  });
+  
+  ttsPitch?.addEventListener('input', (e) => {
+    const value = parseFloat(e.target.value);
+    document.getElementById('pitchValue').textContent = value.toFixed(1);
+    ttsSettings.pitch = value;
+  });
+  
+  ttsVolume?.addEventListener('input', (e) => {
+    const value = parseFloat(e.target.value);
+    document.getElementById('volumeValue').textContent = Math.round(value * 100);
+    ttsSettings.volume = value;
+  });
+  
+  // Test TTS
+  testTtsBtn?.addEventListener('click', () => {
+    const testText = "This is a test of the text to speech feature.";
+    accessibilityHandler?.readText(testText, {
+      language: languageSelect.value,
+      rate: ttsSettings.rate,
+      pitch: ttsSettings.pitch,
+      volume: ttsSettings.volume
+    });
+  });
+  
+  // Save TTS Settings
+  saveTtsBtn?.addEventListener('click', () => {
+    localStorage.setItem('ttsSettings', JSON.stringify(ttsSettings));
+    ttsModal?.classList.add('hidden');
+  });
+  
+  // Load saved TTS settings
+  const savedSettings = localStorage.getItem('ttsSettings');
+  if (savedSettings) {
+    ttsSettings = JSON.parse(savedSettings);
+    if (ttsRate) ttsRate.value = ttsSettings.rate;
+    if (ttsPitch) ttsPitch.value = ttsSettings.pitch;
+    if (ttsVolume) ttsVolume.value = ttsSettings.volume;
+    
+    const rateValue = document.getElementById('rateValue');
+    const pitchValue = document.getElementById('pitchValue');
+    const volumeValue = document.getElementById('volumeValue');
+    
+    if (rateValue) rateValue.textContent = ttsSettings.rate.toFixed(1);
+    if (pitchValue) pitchValue.textContent = ttsSettings.pitch.toFixed(1);
+    if (volumeValue) volumeValue.textContent = Math.round(ttsSettings.volume * 100);
+  }
+}
+
+function populateVoiceSelect() {
+  if (!accessibilityHandler || !voiceSelect) return;
+  
+  const voices = accessibilityHandler.getVoicesByLanguage(
+    languageSelect.value.split('-')[0]
+  );
+  
+  voiceSelect.innerHTML = '';
+  voices.forEach((voice, index) => {
+    const option = document.createElement('option');
+    option.value = index;
+    option.textContent = `${voice.name} (${voice.lang})`;
+    voiceSelect.appendChild(option);
+  });
+}
+
