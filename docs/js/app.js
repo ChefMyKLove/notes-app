@@ -729,10 +729,10 @@ resetZoom?.addEventListener('click', () => accessibilityHandler?.resetZoom());
   });
   
   // Language Selection
-  languageSelect?.addEventListener('change', (e) => {
-    accessibilityHandler?.setLanguage(e.target.value);
-    populateVoiceSelect();
-  });
+ languageSelect?.addEventListener('change', (e) => {
+  populateVoiceSelect();
+});
+
   
   // TTS Controls
  readTextBtn?.addEventListener('click', () => {
@@ -743,17 +743,12 @@ resetZoom?.addEventListener('click', () => accessibilityHandler?.resetZoom());
   }
 });
   
-  pauseReadBtn?.addEventListener('click', () => {
-    if (accessibilityHandler?.isPaused) {
-      accessibilityHandler.resumeReading();
-    } else {
-      accessibilityHandler?.pauseReading();
-    }
-  });
+
   
-  stopReadBtn?.addEventListener('click', () => {
-    accessibilityHandler?.stopReading();
-  });
+stopReadBtn?.addEventListener('click', () => {
+  accessibilityHandler?.stopSpeaking();
+});
+
   
   // TTS Settings Modal
   ttsSettingsBtn?.addEventListener('click', () => {
@@ -829,18 +824,9 @@ resetZoom?.addEventListener('click', () => accessibilityHandler?.resetZoom());
 }
 
 function populateVoiceSelect() {
-  if (!accessibilityHandler || !voiceSelect) return;
-  
-  const langCode = languageSelect?.value || 'en-US';
-  const voices = accessibilityHandler.getVoicesByLanguage(
-    langCode.split('-')[0]
-  );
-  
-  voiceSelect.innerHTML = '';
-  voices.forEach((voice, index) => {
-    const option = document.createElement('option');
-    option.value = index;
-    option.textContent = `${voice.name} (${voice.lang})`;
-    voiceSelect.appendChild(option);
-  });
+  // AccessibilityHandler.loadVoices() already populates #tts-voice-select
+  // Handler manages voice loading internally - no custom logic needed
+  if (accessibilityHandler && accessibilityHandler.loadVoices) {
+    accessibilityHandler.loadVoices();
+  }
 }
