@@ -3,9 +3,11 @@
 // ==========================================
 
 // Auto-detect environment (production vs local)
-const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? 'http://localhost:5000/api'  // Local development
-  : 'https://detailed-hortense-chefmyklove-26470e11.koyeb.app/api';  // Production
+const API_BASE_URL = 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000/api'    // Local development
+    : 'https://detailed-hortense-chefmyklove-26470e11.koyeb.app/api';  // Production
+
 
 console.log('API Base URL:', API_BASE_URL);
 
@@ -666,8 +668,7 @@ function initializeAccessibility() {
   }
   
   accessibilityHandler = new AccessibilityHandler({
-    onError: (error) => {
-      console.error('Accessibility error:', error);
+  
     },
     onStatusChange: (status) => {
       console.log('Accessibility status:', status);
@@ -717,9 +718,9 @@ function setupAccessibilityListeners() {
   });
   
   // Zoom Controls
-  zoomIn?.addEventListener('click', () => accessibilityHandler?.increaseZoom());
-  zoomOut?.addEventListener('click', () => accessibilityHandler?.decreaseZoom());
-  resetZoom?.addEventListener('click', () => accessibilityHandler?.resetZoom());
+zoomIn?.addEventListener('click', () => accessibilityHandler?.zoomIn());
+zoomOut?.addEventListener('click', () => accessibilityHandler?.zoomOut());
+resetZoom?.addEventListener('click', () => accessibilityHandler?.resetZoom());
   
   // Magnifier
   toggleMagnifier?.addEventListener('click', () => {
@@ -734,19 +735,13 @@ function setupAccessibilityListeners() {
   });
   
   // TTS Controls
-  readTextBtn?.addEventListener('click', () => {
-    const selection = window.getSelection().toString();
-    const text = selection || noteContent?.textContent || '';
-    
-    if (text.trim()) {
-      accessibilityHandler?.readText(text, {
-        language: languageSelect?.value,
-        rate: ttsSettings.rate,
-        pitch: ttsSettings.pitch,
-        volume: ttsSettings.volume
-      });
-    }
-  });
+ readTextBtn?.addEventListener('click', () => {
+  const selection = window.getSelection().toString();
+  const text = selection || noteContent?.textContent || '';
+  if (text.trim()) {
+    accessibilityHandler?.speak(text, languageSelect?.value);
+  }
+});
   
   pauseReadBtn?.addEventListener('click', () => {
     if (accessibilityHandler?.isPaused) {
