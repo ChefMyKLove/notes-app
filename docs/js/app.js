@@ -672,7 +672,7 @@ function initializeAccessibility() {
     },
     onStatusChange: (status) => {
       console.log('Accessibility status:', status);
-      
+  }
       // Update UI based on status
       if (status.state === 'reading') {
         if (readTextBtn) readTextBtn.disabled = true;
