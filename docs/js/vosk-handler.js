@@ -1,6 +1,6 @@
 /**
  * Vosk Speech Recognition Handler
- * Manages offline speech-to-text using Vosk-Browser
+ * Manages offline speech-to-text using Vosk-Browser in several languages
  */
 
 class VoskHandler {
