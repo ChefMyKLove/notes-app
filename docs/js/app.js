@@ -668,29 +668,26 @@ function initializeAccessibility() {
   }
   
   accessibilityHandler = new AccessibilityHandler({
-  
-    },
-    onStatusChange: (status) => {
-      console.log('Accessibility status:', status);
-  }
-      // Update UI based on status
-      if (status.state === 'reading') {
-        if (readTextBtn) readTextBtn.disabled = true;
-        if (pauseReadBtn) pauseReadBtn.disabled = false;
-        if (stopReadBtn) stopReadBtn.disabled = false;
-      } else if (status.state === 'paused') {
-        const icon = pauseReadBtn?.querySelector('.btn-icon');
-        if (icon) icon.textContent = '▶️';
-      } else if (status.state === 'stopped') {
-        if (readTextBtn) readTextBtn.disabled = false;
-        if (pauseReadBtn) pauseReadBtn.disabled = true;
-        if (stopReadBtn) stopReadBtn.disabled = true;
-        const icon = pauseReadBtn?.querySelector('.btn-icon');
-        if (icon) icon.textContent = '⏸️';
-      }
+  onStatusChange: (status) => {
+    console.log('Accessibility status:', status);
+    
+    // Update UI based on status
+    if (status.state === 'reading') {
+      if (readTextBtn) readTextBtn.disabled = true;
+      if (pauseReadBtn) pauseReadBtn.disabled = false;
+      if (stopReadBtn) stopReadBtn.disabled = false;
+    } else if (status.state === 'paused') {
+      const icon = pauseReadBtn?.querySelector('.btn-icon');
+      if (icon) icon.textContent = '▶️';
+    } else if (status.state === 'stopped') {
+      if (readTextBtn) readTextBtn.disabled = false;
+      if (pauseReadBtn) pauseReadBtn.disabled = true;
+      if (stopReadBtn) stopReadBtn.disabled = true;
+      const icon = pauseReadBtn?.querySelector('.btn-icon');
+      if (icon) icon.textContent = '⏸️';
     }
-  });
-  
+  }
+});
   // Load saved dark mode preference
   const savedDarkMode = localStorage.getItem('darkMode') === 'true';
   if (savedDarkMode) {
