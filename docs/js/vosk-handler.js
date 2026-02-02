@@ -27,7 +27,7 @@ class VoskHandler {
       {
         name: 'English (Small - 40MB)',
         code: 'vosk-model-small-en-us-0.15',
-        url: 'docs/models/vosk-model-small-en-us-0.15.zip',  // Relative path from /docs/
+        url: 'notes-app/docs/models/vosk-model-small-en-us-0.15.zip',  // Relative path from /docs/
         size: '40MB',
         language: 'en'
       },
