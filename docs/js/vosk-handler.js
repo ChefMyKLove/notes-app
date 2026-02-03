@@ -22,163 +22,118 @@ class VoskHandler {
       ...config
     };
     
-    // CORS Proxy options (in order of preference)
-    this.corsProxies = [
-      'https://api.allorigins.win/raw?url=',
-      'https://corsproxy.io/?',
-      'https://cors-anywhere.herokuapp.com/'
-    ];
+    // Auto-detect proxy URL based on environment
+    // In production, this will be your Vercel URL
+    // In local dev, it will be localhost:3000
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const PROXY_BASE_URL = isLocal 
+      ? 'http://localhost:3000/api/vosk-proxy'
+      : `${window.location.origin}/api/vosk-proxy`;
     
-    // Current proxy index
-    this.currentProxyIndex = 0;
-    
-    // Available models
-    this.modelBaseUrls = {
-      'en': 'https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip',
-      'fr': 'https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip',
-      'pt': 'https://alphacephei.com/vosk/models/vosk-model-small-pt-0.3.zip',
-      'es': 'https://alphacephei.com/vosk/models/vosk-model-small-es-0.42.zip',
-      'zh': 'https://alphacephei.com/vosk/models/vosk-model-small-cn-0.22.zip'
-    };
-    
+    // Available models - Using YOUR backend proxy
     this.availableModels = [
       {
         name: 'English (Small - 40MB)',
         code: 'vosk-model-small-en-us-0.15',
-        baseUrl: this.modelBaseUrls.en,
+        url: `${PROXY_BASE_URL}?lang=en`,
         size: '40MB',
         language: 'en'
       },
       {
-        name: 'French (Small - 41MB)',
-        code: 'vosk-model-small-fr-0.22',
-        baseUrl: this.modelBaseUrls.fr,
-        size: '41MB',
-        language: 'fr'
-      },
-      {
         name: 'Portuguese (Small - 31MB)',
         code: 'vosk-model-small-pt-0.3',
-        baseUrl: this.modelBaseUrls.pt,
+        url: `${PROXY_BASE_URL}?lang=pt`,
         size: '31MB',
         language: 'pt'
       },
       {
+        name: 'French (Small - 41MB)',
+        code: 'vosk-model-small-fr-0.22',
+        url: `${PROXY_BASE_URL}?lang=fr`,
+        size: '41MB',
+        language: 'fr'
+      },
+      {
         name: 'Spanish (Small - 39MB)',
         code: 'vosk-model-small-es-0.42',
-        baseUrl: this.modelBaseUrls.es,
+        url: `${PROXY_BASE_URL}?lang=es`,
         size: '39MB',
         language: 'es'
       },
       {
         name: 'Chinese (Small - 42MB)',
         code: 'vosk-model-small-cn-0.22',
-        baseUrl: this.modelBaseUrls.zh,
+        url: `${PROXY_BASE_URL}?lang=zh`,
         size: '42MB',
         language: 'zh'
       }
     ];
+    
+    console.log('Vosk proxy URL:', PROXY_BASE_URL);
   }  
+  
   /**
-   * Get list of available models with current proxy
+   * Get list of available models
    */
   getAvailableModels() {
-    return this.availableModels.map(model => ({
-      ...model,
-      url: this.buildProxiedUrl(model.baseUrl)
-    }));
+    return this.availableModels;
   }
   
   /**
-   * Build URL with current CORS proxy
-   */
-  buildProxiedUrl(baseUrl) {
-    const proxy = this.corsProxies[this.currentProxyIndex];
-    if (proxy.includes('allorigins')) {
-      return proxy + encodeURIComponent(baseUrl);
-    } else if (proxy.includes('corsproxy')) {
-      return proxy + encodeURIComponent(baseUrl);
-    } else {
-      return proxy + baseUrl;
-    }
-  }
-  
-  /**
-   * Try next CORS proxy
-   */
-  tryNextProxy() {
-    this.currentProxyIndex = (this.currentProxyIndex + 1) % this.corsProxies.length;
-    console.log(`Switching to proxy: ${this.corsProxies[this.currentProxyIndex]}`);
-  }
-  
-  /**
-   * Load a Vosk model with retry logic
-   * @param {string} modelUrl - URL to the model file (can be base URL or proxied)
+   * Load a Vosk model
+   * @param {string} modelUrl - URL to the model file (from your proxy)
    * @param {Function} progressCallback - Optional callback for download progress
    */
   async loadModel(modelUrl, progressCallback = null) {
-    const maxRetries = this.corsProxies.length;
-    let lastError = null;
-    
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        // Build proxied URL if it's a base URL
-        const finalUrl = modelUrl.includes('alphacephei.com') 
-          ? this.buildProxiedUrl(modelUrl)
-          : modelUrl;
-          
-        this.updateStatus('loading', `Downloading model (attempt ${attempt + 1}/${maxRetries})... This may take 30-90 seconds`);
-        
-        if (!window.Vosk) {
-          throw new Error('Vosk library not loaded. Please include vosk-browser script.');
-        }
-        
-        console.log(`Attempting to load model from: ${finalUrl}`);
-        
-        // Create model
-        this.model = await Vosk.createModel(finalUrl);
-        
-        if (!this.model) {
-          throw new Error('Failed to create model');
-        }
-        
-        // Create recognizer with correct sample rate
-        this.recognizer = new this.model.KaldiRecognizer(this.config.sampleRate);
-        
-        // Set up event listeners
-        this.recognizer.on("result", (message) => {
-          const text = message.result?.text || '';
-          if (text.trim()) {
-            this.config.onResult(text);
-          }
-        });
-        
-        this.recognizer.on("partialresult", (message) => {
-          const partial = message.result?.partial || '';
-          if (partial.trim()) {
-            this.config.onPartial(partial);
-          }
-        });
-        
-        this.updateStatus('ready', 'Model loaded successfully! Ready to record.');
-        return true;
-        
-      } catch (error) {
-        console.error(`Model load attempt ${attempt + 1} failed:`, error);
-        lastError = error;
-        
-        // Try next proxy if available
-        if (attempt < maxRetries - 1) {
-          this.tryNextProxy();
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-        }
+    try {
+      this.updateStatus('loading', 'Downloading model... This may take 30-90 seconds. Please be patient.');
+      
+      if (!window.Vosk) {
+        throw new Error('Vosk library not loaded. Please include vosk-browser script.');
       }
+      
+      console.log(`Loading model from: ${modelUrl}`);
+      
+      // Create model
+      this.model = await Vosk.createModel(modelUrl);
+      
+      if (!this.model) {
+        throw new Error('Failed to create model');
+      }
+      
+      // Create recognizer with correct sample rate
+      this.recognizer = new this.model.KaldiRecognizer(this.config.sampleRate);
+      
+      // Set up event listeners
+      this.recognizer.on("result", (message) => {
+        const text = message.result?.text || '';
+        if (text.trim()) {
+          this.config.onResult(text);
+        }
+      });
+      
+      this.recognizer.on("partialresult", (message) => {
+        const partial = message.result?.partial || '';
+        if (partial.trim()) {
+          this.config.onPartial(partial);
+        }
+      });
+      
+      this.updateStatus('ready', 'Model loaded successfully! Ready to record.');
+      return true;
+      
+    } catch (error) {
+      console.error('Model load failed:', error);
+      
+      let errorMessage = error.message;
+      if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
+        errorMessage = 'Failed to load model. Please check that the proxy server is deployed correctly.';
+      }
+      
+      this.updateStatus('error', errorMessage);
+      this.config.onError(error);
+      return false;
     }
-    
-    // All attempts failed
-    this.updateStatus('error', `Failed to load model after ${maxRetries} attempts: ${lastError.message}`);
-    this.config.onError(lastError);
-    return false;
   }
   
   /**
