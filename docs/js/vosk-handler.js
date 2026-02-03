@@ -23,32 +23,32 @@ class VoskHandler {
     };
     
     // Available models - Using locally hosted models (in /docs/models/ folder)
-  this.availableModels = [
+ this.availableModels = [
   {
     name: 'English (Small - 40MB)',
     code: 'vosk-model-small-en-us-0.15',
-    url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://github.com/ChefMyKLove/notes-app/releases/download/vosk/vosk-model-small-en-us-0.15.zip'),
+    url: '/models/vosk-model-small-en-us-0.15.zip',   // ← this is the correct one
     size: '40MB',
     language: 'en'
   },
   {
     name: 'French (Small - 41MB)',
     code: 'vosk-model-small-fr-0.22',
-    url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://github.com/ChefMyKLove/notes-app/releases/download/vosk/vosk-model-small-fr-0.22.zip'),
+    url: '/models/vosk-model-small-fr-0.22.zip',
     size: '41MB',
     language: 'fr'
   },
   {
     name: 'Portuguese (Small - 31MB)',
     code: 'vosk-model-small-pt-0.3',
-    url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://github.com/ChefMyKLove/notes-app/releases/download/vosk/vosk-model-small-pt-0.3.zip'),
+    url: '/models/vosk-model-small-pt-0.3.zip',
     size: '31MB',
     language: 'pt'
   },
   {
     name: 'Chinese (Small - 42MB)',
     code: 'vosk-model-small-cn-0.22',
-    url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://github.com/ChefMyKLove/notes-app/releases/download/vosk/vosk-model-small-cn-0.22.zip'),
+    url: '/models/vosk-model-small-cn-0.22.zip',
     size: '42MB',
     language: 'zh'
   }
