@@ -1,6 +1,6 @@
 /**
  * Vosk Speech Recognition Handler
- * Manages offline speech-to-text using Vosk-Browser in several languages
+ * Manages offline speech-to-text using Vosk-Browser
  */
 
 class VoskHandler {
@@ -22,94 +22,163 @@ class VoskHandler {
       ...config
     };
     
-    // Available models - Using locally hosted models (in /docs/models/ folder)
-// Available models - Hosted on Google Drive (direct download links)
-// Available models - Hosted on Google Drive with CORS proxy bypass
-this.availableModels = [
-  {
-    name: 'English (Small - 40MB)',
-    code: 'vosk-model-small-en-us-0.15',
-    url: 'https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip',
-    size: '40MB',
-    language: 'en'
-  },
-  {
-    name: 'French (Small - 41MB)',
-    code: 'vosk-model-small-fr-0.22',
-    url: 'https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip',
-    size: '41MB',
-    language: 'fr'
-  },
-  {
-    name: 'Portuguese (Small - 31MB)',
-    code: 'vosk-model-small-pt-0.3',
-    url: 'https://alphacephei.com/vosk/models/vosk-model-small-pt-0.3.zip',
-    size: '31MB',
-    language: 'pt'
-  },
-  {
-    name: 'Chinese (Small - 42MB)',
-    code: 'vosk-model-small-cn-0.22',
-    url: 'https://alphacephei.com/vosk/models/vosk-model-small-cn-0.22.zip',
-    size: '42MB',
-    language: 'zh'
-  }
-];
-  }
-  
+    // CORS Proxy options (in order of preference)
+    this.corsProxies = [
+      'https://api.allorigins.win/raw?url=',
+      'https://corsproxy.io/?',
+      'https://cors-anywhere.herokuapp.com/'
+    ];
+    
+    // Current proxy index
+    this.currentProxyIndex = 0;
+    
+    // Available models
+    this.modelBaseUrls = {
+      'en': 'https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip',
+      'fr': 'https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip',
+      'pt': 'https://alphacephei.com/vosk/models/vosk-model-small-pt-0.3.zip',
+      'es': 'https://alphacephei.com/vosk/models/vosk-model-small-es-0.42.zip',
+      'zh': 'https://alphacephei.com/vosk/models/vosk-model-small-cn-0.22.zip'
+    };
+    
+    this.availableModels = [
+      {
+        name: 'English (Small - 40MB)',
+        code: 'vosk-model-small-en-us-0.15',
+        baseUrl: this.modelBaseUrls.en,
+        size: '40MB',
+        language: 'en'
+      },
+      {
+        name: 'French (Small - 41MB)',
+        code: 'vosk-model-small-fr-0.22',
+        baseUrl: this.modelBaseUrls.fr,
+        size: '41MB',
+        language: 'fr'
+      },
+      {
+        name: 'Portuguese (Small - 31MB)',
+        code: 'vosk-model-small-pt-0.3',
+        baseUrl: this.modelBaseUrls.pt,
+        size: '31MB',
+        language: 'pt'
+      },
+      {
+        name: 'Spanish (Small - 39MB)',
+        code: 'vosk-model-small-es-0.42',
+        baseUrl: this.modelBaseUrls.es,
+        size: '39MB',
+        language: 'es'
+      },
+      {
+        name: 'Chinese (Small - 42MB)',
+        code: 'vosk-model-small-cn-0.22',
+        baseUrl: this.modelBaseUrls.zh,
+        size: '42MB',
+        language: 'zh'
+      }
+    ];
+  }  
   /**
-   * Get list of available models
+   * Get list of available models with current proxy
    */
   getAvailableModels() {
-    return this.availableModels;
+    return this.availableModels.map(model => ({
+      ...model,
+      url: this.buildProxiedUrl(model.baseUrl)
+    }));
   }
   
   /**
-   * Load a Vosk model
-   * @param {string} modelUrl - URL to the model file
+   * Build URL with current CORS proxy
+   */
+  buildProxiedUrl(baseUrl) {
+    const proxy = this.corsProxies[this.currentProxyIndex];
+    if (proxy.includes('allorigins')) {
+      return proxy + encodeURIComponent(baseUrl);
+    } else if (proxy.includes('corsproxy')) {
+      return proxy + encodeURIComponent(baseUrl);
+    } else {
+      return proxy + baseUrl;
+    }
+  }
+  
+  /**
+   * Try next CORS proxy
+   */
+  tryNextProxy() {
+    this.currentProxyIndex = (this.currentProxyIndex + 1) % this.corsProxies.length;
+    console.log(`Switching to proxy: ${this.corsProxies[this.currentProxyIndex]}`);
+  }
+  
+  /**
+   * Load a Vosk model with retry logic
+   * @param {string} modelUrl - URL to the model file (can be base URL or proxied)
    * @param {Function} progressCallback - Optional callback for download progress
    */
   async loadModel(modelUrl, progressCallback = null) {
-    try {
-      this.updateStatus('loading', 'Loading model... This may take 10-30 seconds');
-      
-      if (!window.Vosk) {
-        throw new Error('Vosk library not loaded. Please include vosk-browser script.');
-      }
-      
-      // Create model with progress tracking if available
-      this.model = await Vosk.createModel(modelUrl);
-      
-      if (!this.model) {
-        throw new Error('Failed to create model');
-      }
-      
-      // Create recognizer with correct sample rate
-      this.recognizer = new this.model.KaldiRecognizer(this.config.sampleRate);
-      
-      // Set up event listeners
-      this.recognizer.on("result", (message) => {
-        const text = message.result?.text || '';
-        if (text.trim()) {
-          this.config.onResult(text);
+    const maxRetries = this.corsProxies.length;
+    let lastError = null;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        // Build proxied URL if it's a base URL
+        const finalUrl = modelUrl.includes('alphacephei.com') 
+          ? this.buildProxiedUrl(modelUrl)
+          : modelUrl;
+          
+        this.updateStatus('loading', `Downloading model (attempt ${attempt + 1}/${maxRetries})... This may take 30-90 seconds`);
+        
+        if (!window.Vosk) {
+          throw new Error('Vosk library not loaded. Please include vosk-browser script.');
         }
-      });
-      
-      this.recognizer.on("partialresult", (message) => {
-        const partial = message.result?.partial || '';
-        if (partial.trim()) {
-          this.config.onPartial(partial);
+        
+        console.log(`Attempting to load model from: ${finalUrl}`);
+        
+        // Create model
+        this.model = await Vosk.createModel(finalUrl);
+        
+        if (!this.model) {
+          throw new Error('Failed to create model');
         }
-      });
-      
-      this.updateStatus('ready', 'Model loaded successfully! Ready to record.');
-      return true;
-      
-    } catch (error) {
-      this.updateStatus('error', `Failed to load model: ${error.message}`);
-      this.config.onError(error);
-      return false;
+        
+        // Create recognizer with correct sample rate
+        this.recognizer = new this.model.KaldiRecognizer(this.config.sampleRate);
+        
+        // Set up event listeners
+        this.recognizer.on("result", (message) => {
+          const text = message.result?.text || '';
+          if (text.trim()) {
+            this.config.onResult(text);
+          }
+        });
+        
+        this.recognizer.on("partialresult", (message) => {
+          const partial = message.result?.partial || '';
+          if (partial.trim()) {
+            this.config.onPartial(partial);
+          }
+        });
+        
+        this.updateStatus('ready', 'Model loaded successfully! Ready to record.');
+        return true;
+        
+      } catch (error) {
+        console.error(`Model load attempt ${attempt + 1} failed:`, error);
+        lastError = error;
+        
+        // Try next proxy if available
+        if (attempt < maxRetries - 1) {
+          this.tryNextProxy();
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+        }
+      }
     }
+    
+    // All attempts failed
+    this.updateStatus('error', `Failed to load model after ${maxRetries} attempts: ${lastError.message}`);
+    this.config.onError(lastError);
+    return false;
   }
   
   /**
@@ -158,8 +227,8 @@ this.availableModels = [
         try {
           const inputData = event.inputBuffer.getChannelData(0);
           
-          // Use acceptWaveformFloat for Float32Array data with sample rate
-          this.recognizer.acceptWaveformFloat(inputData, this.audioContext.sampleRate);
+          // Use acceptWaveformFloat for Float32Array data
+          this.recognizer.acceptWaveformFloat(inputData);
           
         } catch (error) {
           console.error('Error processing audio:', error);
