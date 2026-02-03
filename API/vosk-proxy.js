@@ -1,8 +1,3 @@
-/**
- * Vosk Model Proxy - Vercel Serverless Function
- * Bypasses CORS by downloading models server-side
- */
-
 const https = require('https');
 
 // Map of available models
