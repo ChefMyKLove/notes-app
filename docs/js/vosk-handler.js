@@ -23,32 +23,33 @@ class VoskHandler {
     };
     
     // Available models - Using locally hosted models (in /docs/models/ folder)
- this.availableModels = [
+// Available models - Hosted on Google Drive (direct download links)
+this.availableModels = [
   {
     name: 'English (Small - 40MB)',
     code: 'vosk-model-small-en-us-0.15',
-    url: '/models/vosk-model-small-en-us-0.15.zip',   // ← this is the correct one
+    url: 'https://drive.google.com/uc?export=download&id=1cxw7-KF0F8NImxM3ZLQqEukkXqscblvo',
     size: '40MB',
     language: 'en'
   },
   {
     name: 'French (Small - 41MB)',
     code: 'vosk-model-small-fr-0.22',
-    url: '/models/vosk-model-small-fr-0.22.zip',
+    url: 'https://drive.google.com/uc?export=download&id=1mIuSG7Eu-SE0I4gD5ymA7_1chL16-OGA',
     size: '41MB',
     language: 'fr'
   },
   {
     name: 'Portuguese (Small - 31MB)',
     code: 'vosk-model-small-pt-0.3',
-    url: '/models/vosk-model-small-pt-0.3.zip',
+    url: 'https://drive.google.com/uc?export=download&id=1Ofh-o6q1qaAYEXCE1LBok8yLvNVr_R8w',
     size: '31MB',
     language: 'pt'
   },
   {
     name: 'Chinese (Small - 42MB)',
     code: 'vosk-model-small-cn-0.22',
-    url: '/models/vosk-model-small-cn-0.22.zip',
+    url: 'https://drive.google.com/uc?export=download&id=1LFYolZ54MzzKWzPR-f2LWotd_gQ7Gtl1',
     size: '42MB',
     language: 'zh'
   }
