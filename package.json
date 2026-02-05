@@ -1,0 +1,10 @@
+{
+  "name": "notes-app-fullstack",
+  "version": "1.0.0",
+  "description": "Full-stack notes application",
+  "scripts": {
+    "install-backend": "cd backend && npm install",
+    "build": "npm run install-backend"
+  },
+  "dependencies": {}
+}
