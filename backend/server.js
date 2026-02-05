@@ -58,18 +58,21 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-  console.log('API Documentation:');
-  console.log('  POST   /api/auth/register - Register a new user');
-  console.log('  POST   /api/auth/login - Login user');
-  console.log('  GET    /api/notes - Get all notes (requires auth)');
-  console.log('  GET    /api/notes/:id - Get single note (requires auth)');
-  console.log('  POST   /api/notes - Create note (requires auth)');
-  console.log('  PUT    /api/notes/:id - Update note (requires auth)');
-  console.log('  DELETE /api/notes/:id - Delete note (requires auth)');
-});
+// Only listen on port in development
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log('API Documentation:');
+    console.log('  POST   /api/auth/register - Register a new user');
+    console.log('  POST   /api/auth/login - Login user');
+    console.log('  GET    /api/notes - Get all notes (requires auth)');
+    console.log('  GET    /api/notes/:id - Get single note (requires auth)');
+    console.log('  POST   /api/notes - Create note (requires auth)');
+    console.log('  PUT    /api/notes/:id - Update note (requires auth)');
+    console.log('  DELETE /api/notes/:id - Delete note (requires auth)');
+  });
+}
 
 // Graceful shutdown
 process.on('SIGINT', () => {
@@ -81,4 +84,5 @@ process.on('SIGINT', () => {
   });
 });
 
+// Export for Vercel serverless
 module.exports = app;
