@@ -18,7 +18,8 @@ const PORT = process.env.PORT || 5000;
     'http://localhost:3000',
     'http://localhost:5501',      
     'http://127.0.0.1:5501',
-   'https://notes-app-pink-psi.vercel.app'
+   'https://notes-app-pink-psi.vercel.app',
+   'https://notes-app-slx-sage-36.vercel.app'
     
   ],
   credentials: true,
