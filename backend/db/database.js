@@ -8,61 +8,95 @@ if (process.env.DATABASE_URL) {
   const { Pool } = require('pg');
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000
   });
 
-  // Convert SQLite ? placeholders to PostgreSQL $1, $2 placeholders
-  const convertPlaceholders = (sql, params) => {
+  // Simple query wrapper that converts SQLite ? to PostgreSQL $1, $2
+  const convertQuery = (sql, params) => {
     let paramIndex = 1;
-    const convertedSql = sql.replace(/\?/g, () => `$${paramIndex++}`);
-    return { sql: convertedSql, params };
+    const converted = sql.replace(/\?/g, () => `$${paramIndex++}`);
+    return { sql: converted, params };
   };
 
   db = {
     run: (sql, params = [], callback) => {
-      const { sql: convertedSql, params: convertedParams } = convertPlaceholders(sql, params);
-      
-      // For PostgreSQL, try to add RETURNING id clause if it's an INSERT
-      let finalSql = convertedSql;
-      if (convertedSql.toUpperCase().includes('INSERT') && !convertedSql.toUpperCase().includes('RETURNING')) {
-        finalSql = convertedSql.replace(/;?\s*$/, ' RETURNING id');
-      }
-      
-      pool.query(finalSql, convertedParams, (err, result) => {
-        if (callback) {
-          // Create a context object that mimics SQLite's behavior
-          const context = {
-            lastID: result?.rows?.[0]?.id || null,
-            changes: result?.rowCount || 0
-          };
-          callback.call(context, err);
+      try {
+        const { sql: convertedSql, params: convertedParams } = convertQuery(sql, params);
+        
+        // Add RETURNING id for INSERT statements
+        let finalSql = convertedSql;
+        if (convertedSql.toUpperCase().includes('INSERT')) {
+          finalSql = convertedSql.replace(/;?\s*$/, ' RETURNING id');
         }
-      });
+        
+        pool.query(finalSql, convertedParams, (err, result) => {
+          if (callback) {
+            const context = {
+              lastID: result?.rows?.[0]?.id || null,
+              changes: result?.rowCount || 0
+            };
+            callback.call(context, err);
+          }
+        });
+      } catch (e) {
+        console.error('db.run error:', e);
+        if (callback) callback(e);
+      }
     },
+    
     get: (sql, params = [], callback) => {
-      const { sql: convertedSql, params: convertedParams } = convertPlaceholders(sql, params);
-      pool.query(convertedSql, convertedParams, (err, result) => {
-        if (callback) callback(err, result?.rows?.[0]);
-      });
+      try {
+        const { sql: convertedSql, params: convertedParams } = convertQuery(sql, params);
+        pool.query(convertedSql, convertedParams, (err, result) => {
+          if (callback) {
+            callback(err, result?.rows?.[0] || null);
+          }
+        });
+      } catch (e) {
+        console.error('db.get error:', e);
+        if (callback) callback(e);
+      }
     },
+    
     all: (sql, params = [], callback) => {
-      const { sql: convertedSql, params: convertedParams } = convertPlaceholders(sql, params);
-      pool.query(convertedSql, convertedParams, (err, result) => {
-        if (callback) callback(err, result?.rows);
-      });
+      try {
+        const { sql: convertedSql, params: convertedParams } = convertQuery(sql, params);
+        pool.query(convertedSql, convertedParams, (err, result) => {
+          if (callback) {
+            callback(err, result?.rows || []);
+          }
+        });
+      } catch (e) {
+        console.error('db.all error:', e);
+        if (callback) callback(e);
+      }
     },
+    
     exec: (sql, callback) => {
-      pool.query(sql, (err) => {
-        if (callback) callback(err);
-      });
+      try {
+        pool.query(sql, (err) => {
+          if (callback) callback(err);
+        });
+      } catch (e) {
+        console.error('db.exec error:', e);
+        if (callback) callback(e);
+      }
     },
-    serialize: (callback) => callback(),
+    
+    serialize: (callback) => {
+      if (callback) callback();
+    },
+    
     close: (callback) => {
-      pool.end(callback);
+      pool.end(() => {
+        if (callback) callback();
+      });
     }
   };
 
-  console.log('Using PostgreSQL database');
+  console.log('Using PostgreSQL database from Supabase');
   initializeDatabase();
 } else {
   // SQLite for development
@@ -80,6 +114,8 @@ if (process.env.DATABASE_URL) {
 }
 
 function initializeDatabase() {
+  console.log('Initializing database tables...');
+  
   db.serialize(() => {
     // Create users table
     db.run(`
@@ -92,8 +128,11 @@ function initializeDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `, (err) => {
-      if (err) console.error('Error creating users table:', err);
-      else console.log('Users table initialized');
+      if (err) {
+        console.error('Error creating users table:', err);
+      } else {
+        console.log('✅ Users table ready');
+      }
     });
 
     // Create notes table
@@ -108,8 +147,11 @@ function initializeDatabase() {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `, (err) => {
-      if (err) console.error('Error creating notes table:', err);
-      else console.log('Notes table initialized');
+      if (err) {
+        console.error('Error creating notes table:', err);
+      } else {
+        console.log('✅ Notes table ready');
+      }
     });
   });
 }
