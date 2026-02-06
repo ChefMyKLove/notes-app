@@ -3,13 +3,17 @@
 // ==========================================
 
 // Auto-detect environment (production vs local)
+// For local: uses http://localhost:5000/api
+// For production on Vercel: uses /api (relative to same domain)
+// For other production: uses the BACKEND_URL environment variable if available
 const API_BASE_URL = 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://localhost:5000/api'    // Local development
-    : '/api';  // Production
-
+    : '/api';  // Production (Vercel or same domain)
 
 console.log('API Base URL:', API_BASE_URL);
+console.log('Hostname:', window.location.hostname);
+console.log('Environment:', window.location.hostname === 'localhost' ? 'Development' : 'Production');
 
 // ============================================
 // GLOBAL FUNCTIONS (Must be defined before DOM ready for onclick handlers)

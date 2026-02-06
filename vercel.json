@@ -3,14 +3,14 @@
   "buildCommand": "cd backend && npm install",
   "builds": [
     {
-      "src": "backend/server.js",
+      "src": "backend/api/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "backend/server.js"
+      "dest": "backend/api/index.js"
     },
     {
       "src": "/js/(.*)",
@@ -26,6 +26,15 @@
     }
   ],
   "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
     {
       "source": "/js/(.*)",
       "headers": [
@@ -46,8 +55,8 @@
     }
   ],
   "functions": {
-    "backend/server.js": {
-      "maxDuration": 10
+    "backend/api/index.js": {
+      "maxDuration": 60
     }
   }
 }
