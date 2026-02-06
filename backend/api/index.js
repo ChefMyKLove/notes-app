@@ -7,23 +7,37 @@ const notesRoutes = require('../routes/notesRoutes');
 
 const app = express();
 
-// CORS Configuration
+// CORS Configuration - Dynamic origin checking
 const corsOptions = {
-  origin: [
-    'https://chefmyklove.github.io',
-    'http://localhost:5500',
-    'http://127.0.0.1:5500',
-    'http://localhost:8000',
-    'http://localhost:3000',
-    'http://localhost:5501',
-    'http://127.0.0.1:5501',
-    'https://notes-app-pink-psi.vercel.app',
-    'https://notes-app-slx-sage-36.vercel.app',
-    'https://notes-rkvh0so1x-chefmykloves-projects.vercel.app', // Add current Vercel URL
-    'https://notes-dt3spbm83-chefmykloves-projects.vercel.app', // Add newer Vercel URL
-    /vercel\.app$/, // Accept any Vercel subdomain
-    process.env.FRONTEND_URL // Add dynamic frontend URL from env
-  ].filter(Boolean), // Remove undefined values
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://chefmyklove.github.io',
+      'http://localhost:5500',
+      'http://127.0.0.1:5500',
+      'http://localhost:8000',
+      'http://localhost:3000',
+      'http://localhost:5501',
+      'http://127.0.0.1:5501',
+      'https://notes-app-pink-psi.vercel.app',
+      'https://notes-app-slx-sage-36.vercel.app',
+      'https://notes-rkvh0so1x-chefmykloves-projects.vercel.app',
+      'https://notes-dt3spbm83-chefmykloves-projects.vercel.app',
+      'https://notes-et4e0ov04-chefmykloves-projects.vercel.app',
+      'https://notes-nsghe730y-chefmykloves-projects.vercel.app',
+      process.env.FRONTEND_URL
+    ].filter(Boolean);
+
+    // Allow any Vercel URL or localhost
+    if (!origin || 
+        allowedOrigins.includes(origin) || 
+        origin.includes('vercel.app') ||
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200
 };
