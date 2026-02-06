@@ -5,11 +5,14 @@ const jwt = require('jsonwebtoken');
 const authController = {
   // Register a new user
   register: (req, res) => {
+    console.log('Register request received:', { username: req.body.username, email: req.body.email });
+    
     const { username, email, password } = req.body;
 
     // Check if user already exists
     db.get('SELECT * FROM users WHERE username = ? OR email = ?', [username, email], (err, user) => {
       if (err) {
+        console.error('Database error during user check:', err);
         return res.status(500).json({
           success: false,
           message: 'Database error',
@@ -18,6 +21,7 @@ const authController = {
       }
 
       if (user) {
+        console.log('User already exists:', username);
         return res.status(409).json({
           success: false,
           message: 'Username or email already exists'
@@ -27,6 +31,7 @@ const authController = {
       // Hash password
       bcrypt.hash(password, 10, (hashErr, hashedPassword) => {
         if (hashErr) {
+          console.error('Error hashing password:', hashErr);
           return res.status(500).json({
             success: false,
             message: 'Error hashing password',
@@ -35,11 +40,13 @@ const authController = {
         }
 
         // Insert new user
+        console.log('Attempting to insert user:', username);
         db.run(
           'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
           [username, email, hashedPassword],
           function(insertErr) {
             if (insertErr) {
+              console.error('Error inserting user:', insertErr);
               return res.status(500).json({
                 success: false,
                 message: 'Error creating user',
@@ -47,6 +54,7 @@ const authController = {
               });
             }
 
+            console.log('User created successfully with ID:', this.lastID);
             const token = jwt.sign(
               { userId: this.lastID, username },
               process.env.JWT_SECRET || 'your_secret_key_here_change_in_production',
