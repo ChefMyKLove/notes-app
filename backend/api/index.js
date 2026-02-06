@@ -19,6 +19,9 @@ const corsOptions = {
     'http://127.0.0.1:5501',
     'https://notes-app-pink-psi.vercel.app',
     'https://notes-app-slx-sage-36.vercel.app',
+    'https://notes-rkvh0so1x-chefmykloves-projects.vercel.app', // Add current Vercel URL
+    'https://notes-dt3spbm83-chefmykloves-projects.vercel.app', // Add newer Vercel URL
+    /vercel\.app$/, // Accept any Vercel subdomain
     process.env.FRONTEND_URL // Add dynamic frontend URL from env
   ].filter(Boolean), // Remove undefined values
   credentials: true,
@@ -26,8 +29,8 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
