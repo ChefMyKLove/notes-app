@@ -4,7 +4,10 @@
   "builds": [
     {
       "src": "backend/api/index.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 60
+      }
     }
   ],
   "routes": [
@@ -53,10 +56,5 @@
         }
       ]
     }
-  ],
-  "functions": {
-    "backend/api/index.js": {
-      "maxDuration": 60
-    }
-  }
+  ]
 }
