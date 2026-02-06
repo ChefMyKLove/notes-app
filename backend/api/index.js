@@ -60,13 +60,23 @@ app.get('/api/health', (req, res) => {
 // Database diagnostic endpoint
 app.get('/api/db-test', (req, res) => {
   console.log('DB test endpoint hit');
-  console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
+  const dbUrl = process.env.DATABASE_URL;
+  console.log('DATABASE_URL set:', !!dbUrl);
+  console.log('DATABASE_URL first 50 chars:', dbUrl ? dbUrl.substring(0, 50) : 'NOT SET');
   
-  if (!process.env.DATABASE_URL) {
+  if (!dbUrl) {
     return res.status(500).json({
       success: false,
-      message: 'DATABASE_URL environment variable not set!',
-      NODE_ENV: process.env.NODE_ENV
+      message: 'DATABASE_URL environment variable NOT SET in Vercel!',
+      NODE_ENV: process.env.NODE_ENV,
+      steps: [
+        '1. Go to Vercel Dashboard',
+        '2. Select your project',
+        '3. Click Settings → Environment Variables',
+        '4. Make sure DATABASE_URL is there with full connection string',
+        '5. Click Save',
+        '6. Redeploy: vercel --prod'
+      ]
     });
   }
   
@@ -78,7 +88,8 @@ app.get('/api/db-test', (req, res) => {
       return res.status(500).json({
         success: false,
         message: 'Database query failed',
-        error: err.message
+        error: err.message,
+        databaseURL: 'SET (first 50 chars): ' + dbUrl.substring(0, 50)
       });
     }
     
