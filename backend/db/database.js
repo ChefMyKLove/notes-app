@@ -21,8 +21,22 @@ if (process.env.DATABASE_URL) {
   db = {
     run: (sql, params = [], callback) => {
       const { sql: convertedSql, params: convertedParams } = convertPlaceholders(sql, params);
-      pool.query(convertedSql, convertedParams, (err, result) => {
-        if (callback) callback(err);
+      
+      // For PostgreSQL, try to add RETURNING id clause if it's an INSERT
+      let finalSql = convertedSql;
+      if (convertedSql.toUpperCase().includes('INSERT') && !convertedSql.toUpperCase().includes('RETURNING')) {
+        finalSql = convertedSql.replace(/;?\s*$/, ' RETURNING id');
+      }
+      
+      pool.query(finalSql, convertedParams, (err, result) => {
+        if (callback) {
+          // Create a context object that mimics SQLite's behavior
+          const context = {
+            lastID: result?.rows?.[0]?.id || null,
+            changes: result?.rowCount || 0
+          };
+          callback.call(context, err);
+        }
       });
     },
     get: (sql, params = [], callback) => {
