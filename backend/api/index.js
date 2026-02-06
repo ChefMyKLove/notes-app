@@ -48,10 +48,45 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
+  console.log('Health check requested');
   res.status(200).json({
     success: true,
     message: 'Server is running',
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV,
+    databaseURL: process.env.DATABASE_URL ? 'CONFIGURED' : 'NOT SET'
+  });
+});
+
+// Database diagnostic endpoint
+app.get('/api/db-test', (req, res) => {
+  console.log('DB test endpoint hit');
+  console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
+  
+  if (!process.env.DATABASE_URL) {
+    return res.status(500).json({
+      success: false,
+      message: 'DATABASE_URL environment variable not set!',
+      NODE_ENV: process.env.NODE_ENV
+    });
+  }
+  
+  // Test a simple query
+  const db = require('../db/database');
+  db.get('SELECT NOW() as current_time', [], (err, row) => {
+    if (err) {
+      console.error('DB query error:', err.message);
+      return res.status(500).json({
+        success: false,
+        message: 'Database query failed',
+        error: err.message
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Database connected successfully',
+      data: row
+    });
   });
 });
 
