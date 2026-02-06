@@ -11,19 +11,29 @@ if (process.env.DATABASE_URL) {
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
   });
 
+  // Convert SQLite ? placeholders to PostgreSQL $1, $2 placeholders
+  const convertPlaceholders = (sql, params) => {
+    let paramIndex = 1;
+    const convertedSql = sql.replace(/\?/g, () => `$${paramIndex++}`);
+    return { sql: convertedSql, params };
+  };
+
   db = {
     run: (sql, params = [], callback) => {
-      pool.query(sql, params, (err, result) => {
+      const { sql: convertedSql, params: convertedParams } = convertPlaceholders(sql, params);
+      pool.query(convertedSql, convertedParams, (err, result) => {
         if (callback) callback(err);
       });
     },
     get: (sql, params = [], callback) => {
-      pool.query(sql, params, (err, result) => {
+      const { sql: convertedSql, params: convertedParams } = convertPlaceholders(sql, params);
+      pool.query(convertedSql, convertedParams, (err, result) => {
         if (callback) callback(err, result?.rows?.[0]);
       });
     },
     all: (sql, params = [], callback) => {
-      pool.query(sql, params, (err, result) => {
+      const { sql: convertedSql, params: convertedParams } = convertPlaceholders(sql, params);
+      pool.query(convertedSql, convertedParams, (err, result) => {
         if (callback) callback(err, result?.rows);
       });
     },
