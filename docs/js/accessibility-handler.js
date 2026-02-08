@@ -294,7 +294,7 @@ class AccessibilityHandler {
   enableMagnifier() {
     if (this.magnifierElement) return;
     
-    // Create magnifier element - 300x300px (50% larger)
+    // Create magnifier container
     this.magnifierElement = document.createElement('div');
     this.magnifierElement.id = 'screen-magnifier';
     this.magnifierElement.style.cssText = `
@@ -311,60 +311,74 @@ class AccessibilityHandler {
       overflow: hidden;
     `;
     
+    // Create canvas for magnified rendering
+    const canvas = document.createElement('canvas');
+    canvas.width = 300;
+    canvas.height = 300;
+    canvas.style.cssText = 'width: 100%; height: 100%; display: block;';
+    this.magnifierElement.appendChild(canvas);
+    
     document.body.appendChild(this.magnifierElement);
+    
+    const ctx = canvas.getContext('2d');
     
     // Track mouse movement
     this.magnifierMouseMove = (e) => {
-      if (!this.magnifierElement) return;
+      if (!this.magnifierElement || !ctx) return;
       
       try {
         const x = e.clientX;
         const y = e.clientY;
         
-        // Position magnifier (150px offset for 300x300)
+        // Position magnifier
         this.magnifierElement.style.left = (x - 150) + 'px';
         this.magnifierElement.style.top = (y - 150) + 'px';
         this.magnifierElement.style.display = 'block';
         
-        // Get element at cursor position
+        // Get element at cursor
         const elementAtCursor = document.elementFromPoint(x, y);
         if (!elementAtCursor) return;
         
-        // Clear previous content
-        this.magnifierElement.innerHTML = '';
+        // Clear canvas
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, 300, 300);
         
-        // Clone the element and its parent context
-        let contentElement = elementAtCursor.cloneNode(true);
-        
-        // If it's a text node or small element, use parent
-        if (contentElement.nodeType === 3 || contentElement.textContent.length < 5) {
-          contentElement = elementAtCursor.parentElement?.cloneNode(true) || contentElement;
+        // Get text from element and nearby
+        let text = elementAtCursor.textContent?.trim() || '';
+        if (!text) {
+          text = elementAtCursor.parentElement?.textContent?.trim() || 'No content';
         }
         
-        // Create wrapper with scale and positioning
-        const wrapper = document.createElement('div');
-        wrapper.style.cssText = `
-          transform: scale(2);
-          transform-origin: top left;
-          position: absolute;
-          left: ${-x * 2 + 150}px;
-          top: ${-y * 2 + 150}px;
-          pointer-events: none;
-        `;
+        // Limit text length
+        text = text.substring(0, 150);
         
-        // Clone just the text/visible content, not the full structure
-        const textContent = document.createElement('div');
-        textContent.style.cssText = `
-          background: white;
-          color: inherit;
-          padding: 10px;
-          font-size: inherit;
-          line-height: 1.5;
-        `;
-        textContent.textContent = elementAtCursor.textContent?.substring(0, 200) || 'No content';
+        // Draw magnified text
+        ctx.fillStyle = '#333';
+        ctx.font = 'bold 28px Arial, sans-serif';
+        ctx.lineWidth = 2;
+        ctx.textBaseline = 'top';
+        ctx.textAlign = 'left';
         
-        wrapper.appendChild(textContent);
-        this.magnifierElement.appendChild(wrapper);
+        // Wrap text and draw
+        const lineHeight = 40;
+        const maxWidth = 280;
+        const words = text.split(' ');
+        let line = '';
+        let y_offset = 20;
+        
+        for (let word of words) {
+          const testLine = line + word + ' ';
+          const metrics = ctx.measureText(testLine);
+          
+          if (metrics.width > maxWidth && line !== '') {
+            ctx.fillText(line, 10, y_offset);
+            y_offset += lineHeight;
+            line = word + ' ';
+          } else {
+            line = testLine;
+          }
+        }
+        ctx.fillText(line, 10, y_offset);
         
       } catch (error) {
         console.error('Magnifier error:', error);
