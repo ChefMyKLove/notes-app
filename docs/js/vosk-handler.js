@@ -28,28 +28,28 @@ class VoskHandler {
       {
         name: 'English (Small - 40MB)',
         code: 'vosk-model-small-en-us-0.15',
-        url: 'https://hklnrjpkocsszvesslbn.supabase.co/storage/v1/object/public/vosk-models/vosk-model-small-en-us-0.15.zip',
+        url: 'https://hklnrjpkocsszvesslbn.supabase.co/storage/v1/object/public/AI%20Models/vosk-model-small-en-us-0.15.zip',
         size: '40MB',
         language: 'en'
       },
       {
         name: 'Portuguese (Small - 31MB)',
         code: 'vosk-model-small-pt-0.3',
-        url: 'https://hklnrjpkocsszvesslbn.supabase.co/storage/v1/object/public/vosk-models/vosk-model-small-pt-0.3.zip',
+        url: 'https://hklnrjpkocsszvesslbn.supabase.co/storage/v1/object/public/AI%20Models/vosk-model-small-pt-0.3.zip',
         size: '31MB',
         language: 'pt'
       },
       {
         name: 'French (Small - 41MB)',
         code: 'vosk-model-small-fr-0.22',
-        url: 'https://hklnrjpkocsszvesslbn.supabase.co/storage/v1/object/public/vosk-models/vosk-model-small-fr-0.22.zip',
+        url: 'https://hklnrjpkocsszvesslbn.supabase.co/storage/v1/object/public/AI%20Models/vosk-model-small-fr-0.22.zip',
         size: '41MB',
         language: 'fr'
       },
       {
         name: 'Chinese (Small - 42MB)',
         code: 'vosk-model-small-cn-0.22',
-        url: 'https://hklnrjpkocsszvesslbn.supabase.co/storage/v1/object/public/vosk-models/vosk-model-small-cn-0.22.zip',
+        url: 'https://hklnrjpkocsszvesslbn.supabase.co/storage/v1/object/public/AI%20Models/vosk-model-small-cn-0.22.zip',
         size: '42MB',
         language: 'zh'
       }
