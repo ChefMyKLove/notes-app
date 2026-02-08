@@ -22,54 +22,40 @@ class VoskHandler {
       ...config
     };
     
-    // Auto-detect proxy URL based on environment
-    // In production, this will be your Vercel URL
-    // In local dev, it will be localhost:3000
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const PROXY_BASE_URL = isLocal 
-      ? 'http://localhost:3000/api/vosk-proxy'
-      : `${window.location.origin}/api/vosk-proxy`;
-    
-    // Available models - Using YOUR backend proxy
+    // Available models - Hosted on Supabase Storage
+    // Direct CDN URLs, no proxy needed
     this.availableModels = [
       {
         name: 'English (Small - 40MB)',
         code: 'vosk-model-small-en-us-0.15',
-        url: `${PROXY_BASE_URL}?lang=en`,
+        url: 'https://hklnrjpkocsszvesslbn.supabase.co/storage/v1/object/public/vosk-models/vosk-model-small-en-us-0.15.zip',
         size: '40MB',
         language: 'en'
       },
       {
         name: 'Portuguese (Small - 31MB)',
         code: 'vosk-model-small-pt-0.3',
-        url: `${PROXY_BASE_URL}?lang=pt`,
+        url: 'https://hklnrjpkocsszvesslbn.supabase.co/storage/v1/object/public/vosk-models/vosk-model-small-pt-0.3.zip',
         size: '31MB',
         language: 'pt'
       },
       {
         name: 'French (Small - 41MB)',
         code: 'vosk-model-small-fr-0.22',
-        url: `${PROXY_BASE_URL}?lang=fr`,
+        url: 'https://hklnrjpkocsszvesslbn.supabase.co/storage/v1/object/public/vosk-models/vosk-model-small-fr-0.22.zip',
         size: '41MB',
         language: 'fr'
       },
       {
-        name: 'Spanish (Small - 39MB)',
-        code: 'vosk-model-small-es-0.42',
-        url: `${PROXY_BASE_URL}?lang=es`,
-        size: '39MB',
-        language: 'es'
-      },
-      {
         name: 'Chinese (Small - 42MB)',
         code: 'vosk-model-small-cn-0.22',
-        url: `${PROXY_BASE_URL}?lang=zh`,
+        url: 'https://hklnrjpkocsszvesslbn.supabase.co/storage/v1/object/public/vosk-models/vosk-model-small-cn-0.22.zip',
         size: '42MB',
         language: 'zh'
       }
     ];
     
-    console.log('Vosk proxy URL:', PROXY_BASE_URL);
+    console.log('Vosk models loaded from Supabase Storage');
   }  
   
   /**
