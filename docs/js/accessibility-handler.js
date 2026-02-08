@@ -294,7 +294,7 @@ class AccessibilityHandler {
   enableMagnifier() {
     if (this.magnifierElement) return;
     
-    const MAGNIFIER_SIZE = 300;
+    const MAGNIFIER_SIZE = 450;
     const ZOOM_LEVEL = 2;
     
     // Create square magnifier container
