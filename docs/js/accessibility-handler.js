@@ -294,15 +294,17 @@ class AccessibilityHandler {
   enableMagnifier() {
     if (this.magnifierElement) return;
     
-    // Create magnifier container
+    const MAGNIFIER_SIZE = 300;
+    const ZOOM_LEVEL = 2;
+    
+    // Create square magnifier container
     this.magnifierElement = document.createElement('div');
     this.magnifierElement.id = 'screen-magnifier';
     this.magnifierElement.style.cssText = `
       position: fixed;
-      width: 300px;
-      height: 300px;
+      width: ${MAGNIFIER_SIZE}px;
+      height: ${MAGNIFIER_SIZE}px;
       border: 4px solid #2c3e50;
-      border-radius: 50%;
       pointer-events: none;
       z-index: 10000;
       display: none;
@@ -311,74 +313,69 @@ class AccessibilityHandler {
       overflow: hidden;
     `;
     
-    // Create canvas for magnified rendering
-    const canvas = document.createElement('canvas');
-    canvas.width = 300;
-    canvas.height = 300;
-    canvas.style.cssText = 'width: 100%; height: 100%; display: block;';
-    this.magnifierElement.appendChild(canvas);
+    // Create inner viewport that will hold magnified content
+    const viewport = document.createElement('div');
+    viewport.style.cssText = `
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    `;
+    this.magnifierElement.appendChild(viewport);
     
     document.body.appendChild(this.magnifierElement);
     
-    const ctx = canvas.getContext('2d');
+    // Store reference
+    const magnifier = this.magnifierElement;
     
     // Track mouse movement
     this.magnifierMouseMove = (e) => {
-      if (!this.magnifierElement || !ctx) return;
+      if (!magnifier) return;
       
       try {
         const x = e.clientX;
         const y = e.clientY;
         
-        // Position magnifier
-        this.magnifierElement.style.left = (x - 150) + 'px';
-        this.magnifierElement.style.top = (y - 150) + 'px';
-        this.magnifierElement.style.display = 'block';
+        // Position magnifier centered on cursor
+        magnifier.style.left = (x - MAGNIFIER_SIZE / 2) + 'px';
+        magnifier.style.top = (y - MAGNIFIER_SIZE / 2) + 'px';
+        magnifier.style.display = 'block';
         
         // Get element at cursor
         const elementAtCursor = document.elementFromPoint(x, y);
-        if (!elementAtCursor) return;
+        if (!elementAtCursor || elementAtCursor.id === 'screen-magnifier') return;
         
-        // Clear canvas
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, 300, 300);
+        // Clear viewport and clone the body for magnification
+        viewport.innerHTML = '';
         
-        // Get text from element and nearby
-        let text = elementAtCursor.textContent?.trim() || '';
-        if (!text) {
-          text = elementAtCursor.parentElement?.textContent?.trim() || 'No content';
-        }
+        // Clone the visible content
+        const clone = document.body.cloneNode(true);
         
-        // Limit text length
-        text = text.substring(0, 150);
+        // Hide the magnifier in the clone to avoid recursion
+        const clonedMagnifier = clone.querySelector('#screen-magnifier');
+        if (clonedMagnifier) clonedMagnifier.style.display = 'none';
         
-        // Draw magnified text
-        ctx.fillStyle = '#333';
-        ctx.font = 'bold 28px Arial, sans-serif';
-        ctx.lineWidth = 2;
-        ctx.textBaseline = 'top';
-        ctx.textAlign = 'left';
+        // Create wrapper for scaling
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = `
+          position: absolute;
+          transform: scale(${ZOOM_LEVEL});
+          transform-origin: top left;
+          width: ${window.innerWidth}px;
+          height: ${window.innerHeight}px;
+          top: 0;
+          left: 0;
+        `;
+        wrapper.appendChild(clone);
         
-        // Wrap text and draw
-        const lineHeight = 40;
-        const maxWidth = 280;
-        const words = text.split(' ');
-        let line = '';
-        let y_offset = 20;
+        // Position to show area under cursor magnified and centered
+        const offsetX = -(x * ZOOM_LEVEL) + (MAGNIFIER_SIZE / 2);
+        const offsetY = -(y * ZOOM_LEVEL) + (MAGNIFIER_SIZE / 2);
         
-        for (let word of words) {
-          const testLine = line + word + ' ';
-          const metrics = ctx.measureText(testLine);
-          
-          if (metrics.width > maxWidth && line !== '') {
-            ctx.fillText(line, 10, y_offset);
-            y_offset += lineHeight;
-            line = word + ' ';
-          } else {
-            line = testLine;
-          }
-        }
-        ctx.fillText(line, 10, y_offset);
+        wrapper.style.left = offsetX + 'px';
+        wrapper.style.top = offsetY + 'px';
+        
+        viewport.appendChild(wrapper);
         
       } catch (error) {
         console.error('Magnifier error:', error);
