@@ -294,7 +294,7 @@ class AccessibilityHandler {
   enableMagnifier() {
     if (this.magnifierElement) return;
     
-    // Create magnifier element - 50% larger (300x300)
+    // Create magnifier element - 300x300px (50% larger)
     this.magnifierElement = document.createElement('div');
     this.magnifierElement.id = 'screen-magnifier';
     this.magnifierElement.style.cssText = `
@@ -307,50 +307,68 @@ class AccessibilityHandler {
       z-index: 10000;
       display: none;
       background: white;
-      box-shadow: 0 0 30px rgba(0,0,0,0.7), inset 0 0 20px rgba(0,0,0,0.1);
+      box-shadow: 0 0 30px rgba(0,0,0,0.7);
       overflow: hidden;
-      backdrop-filter: brightness(1.3);
     `;
     
     document.body.appendChild(this.magnifierElement);
-    
-    // Create inner content for magnification
-    const magnifierContent = document.createElement('div');
-    magnifierContent.style.cssText = `
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      transform-origin: center;
-      transform: scale(2);
-    `;
-    this.magnifierElement.appendChild(magnifierContent);
     
     // Track mouse movement
     this.magnifierMouseMove = (e) => {
       if (!this.magnifierElement) return;
       
-      const x = e.clientX;
-      const y = e.clientY;
-      
-      // Position magnifier (150px offset for 300x300)
-      this.magnifierElement.style.left = (x - 150) + 'px';
-      this.magnifierElement.style.top = (y - 150) + 'px';
-      this.magnifierElement.style.display = 'block';
-      
-      // Magnify: show what's under the cursor at 2x zoom
-      const content = magnifierContent;
-      const zoomLevel = 2;
-      
-      // Clone the visible content and magnify it
-      content.innerHTML = document.documentElement.innerHTML;
-      content.style.transform = `scale(${zoomLevel})`;
-      
-      // Position to show area under cursor
-      const offsetX = -(x * zoomLevel) + 150;
-      const offsetY = -(y * zoomLevel) + 150;
-      
-      content.style.left = offsetX + 'px';
-      content.style.top = offsetY + 'px';
+      try {
+        const x = e.clientX;
+        const y = e.clientY;
+        
+        // Position magnifier (150px offset for 300x300)
+        this.magnifierElement.style.left = (x - 150) + 'px';
+        this.magnifierElement.style.top = (y - 150) + 'px';
+        this.magnifierElement.style.display = 'block';
+        
+        // Get element at cursor position
+        const elementAtCursor = document.elementFromPoint(x, y);
+        if (!elementAtCursor) return;
+        
+        // Clear previous content
+        this.magnifierElement.innerHTML = '';
+        
+        // Clone the element and its parent context
+        let contentElement = elementAtCursor.cloneNode(true);
+        
+        // If it's a text node or small element, use parent
+        if (contentElement.nodeType === 3 || contentElement.textContent.length < 5) {
+          contentElement = elementAtCursor.parentElement?.cloneNode(true) || contentElement;
+        }
+        
+        // Create wrapper with scale and positioning
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = `
+          transform: scale(2);
+          transform-origin: top left;
+          position: absolute;
+          left: ${-x * 2 + 150}px;
+          top: ${-y * 2 + 150}px;
+          pointer-events: none;
+        `;
+        
+        // Clone just the text/visible content, not the full structure
+        const textContent = document.createElement('div');
+        textContent.style.cssText = `
+          background: white;
+          color: inherit;
+          padding: 10px;
+          font-size: inherit;
+          line-height: 1.5;
+        `;
+        textContent.textContent = elementAtCursor.textContent?.substring(0, 200) || 'No content';
+        
+        wrapper.appendChild(textContent);
+        this.magnifierElement.appendChild(wrapper);
+        
+      } catch (error) {
+        console.error('Magnifier error:', error);
+      }
     };
     
     document.addEventListener('mousemove', this.magnifierMouseMove);
