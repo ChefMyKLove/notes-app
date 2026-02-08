@@ -294,24 +294,36 @@ class AccessibilityHandler {
   enableMagnifier() {
     if (this.magnifierElement) return;
     
-    // Create magnifier element
+    // Create magnifier element - 50% larger (300x300)
     this.magnifierElement = document.createElement('div');
     this.magnifierElement.id = 'screen-magnifier';
     this.magnifierElement.style.cssText = `
       position: fixed;
-      width: 200px;
-      height: 200px;
-      border: 3px solid #3498db;
+      width: 300px;
+      height: 300px;
+      border: 4px solid #2c3e50;
       border-radius: 50%;
       pointer-events: none;
       z-index: 10000;
       display: none;
       background: white;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      box-shadow: 0 0 30px rgba(0,0,0,0.7), inset 0 0 20px rgba(0,0,0,0.1);
       overflow: hidden;
+      backdrop-filter: brightness(1.3);
     `;
     
     document.body.appendChild(this.magnifierElement);
+    
+    // Create inner content for magnification
+    const magnifierContent = document.createElement('div');
+    magnifierContent.style.cssText = `
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      transform-origin: center;
+      transform: scale(2);
+    `;
+    this.magnifierElement.appendChild(magnifierContent);
     
     // Track mouse movement
     this.magnifierMouseMove = (e) => {
@@ -320,19 +332,25 @@ class AccessibilityHandler {
       const x = e.clientX;
       const y = e.clientY;
       
-      // Position magnifier
-      this.magnifierElement.style.left = (x - 100) + 'px';
-      this.magnifierElement.style.top = (y - 100) + 'px';
+      // Position magnifier (150px offset for 300x300)
+      this.magnifierElement.style.left = (x - 150) + 'px';
+      this.magnifierElement.style.top = (y - 150) + 'px';
       this.magnifierElement.style.display = 'block';
       
-      // Capture and magnify content
-      const zoom = 2;
-      const offsetX = -x * zoom + 100;
-      const offsetY = -y * zoom + 100;
+      // Magnify: show what's under the cursor at 2x zoom
+      const content = magnifierContent;
+      const zoomLevel = 2;
       
-      this.magnifierElement.style.backgroundImage = `url(${this.captureScreen()})`;
-      this.magnifierElement.style.backgroundSize = `${window.innerWidth * zoom}px ${window.innerHeight * zoom}px`;
-      this.magnifierElement.style.backgroundPosition = `${offsetX}px ${offsetY}px`;
+      // Clone the visible content and magnify it
+      content.innerHTML = document.documentElement.innerHTML;
+      content.style.transform = `scale(${zoomLevel})`;
+      
+      // Position to show area under cursor
+      const offsetX = -(x * zoomLevel) + 150;
+      const offsetY = -(y * zoomLevel) + 150;
+      
+      content.style.left = offsetX + 'px';
+      content.style.top = offsetY + 'px';
     };
     
     document.addEventListener('mousemove', this.magnifierMouseMove);

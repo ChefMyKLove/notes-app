@@ -1,70 +1,102 @@
-# Note-Taking App
+# 📝 Accessible Note-Taking App
 
-A full-stack note-taking application built with Node.js, Express, SQLite, HTML5, CSS3, and vanilla JavaScript. This application allows users to create personalized accounts, authenticate securely, and manage their personal note collections with full CRUD operations.
+A **full-featured, accessibility-focused note-taking application** built with Node.js, Express, SQLite, HTML5, CSS3, and vanilla JavaScript. This app prioritizes inclusivity with screen reader support, keyboard navigation, voice-to-text capabilities, and comprehensive accessibility controls.
 
-## Features
+## 🌟 Key Features
 
-✅ **User Authentication**
+### ✅ User Authentication & Security
 - User registration with email validation
 - Secure login with JWT tokens
 - Password hashing with bcryptjs
 - Personalized note collections per user
 
-✅ **Note Management**
-- Create new notes with title and content
-- Read all personal notes
-- Update existing notes
-- Delete notes
-- Character count for content
-
-✅ **Frontend Interface**
-- Clean, responsive UI with dark sidebar
+### ✅ Note Management
+- Create, read, update, and delete notes
+- Rich text editing capabilities
+- Character count tracking (up to 10,000 characters)
 - Real-time note list updates
-- Rich note editor
-- Error handling and user feedback
-- Mobile-friendly design
 
-✅ **Backend API**
+### ✅ **Multi-Language AI Speech Recognition** ⭐ NEW
+- Voice-to-text using Vosk offline speech recognition
+- Supported languages: English, Portuguese, French, Chinese
+- Automatic speech-to-text conversion for hands-free note creation
+- Models hosted on Supabase Storage (no server processing required)
+
+### ✅ **Rich Text Editor** ⭐ NEW
+- Format text with bold, italic, underline, strikethrough
+- Create headers (h1-h6)
+- Lists (ordered and unordered)
+- Code blocks with syntax highlighting
+- Full keyboard support
+
+### ✅ **Comprehensive Accessibility Features** ⭐ NEW
+- **ARIA Labels & Roles:** Full semantic HTML for screen readers
+- **Keyboard Navigation:** Complete app control via keyboard (Tab, Enter, Arrow keys)
+- **Screen Reader Support:** Optimized for NVDA, JAWS, VoiceOver
+- **Text-to-Speech:** ReadAloud feature with voice selection
+- **Font Size Controls:** Zoom in/out for better readability
+- **High Contrast Mode:** Enhanced visibility for visually impaired users
+- **Screen Magnifier:** 300x300px magnifier with 2x zoom for precise reading
+- **Focus Management:** Clear visual focus indicators
+- **Color-Blind Friendly:** Accessible color palette
+
+### ✅ Frontend Interface
+- Clean, responsive UI with dark sidebar
+- Mobile-friendly design
+- Error handling with user feedback
+- Real-time character count
+
+### ✅ Backend API
 - RESTful API design
 - Comprehensive input validation
-- Error handling with meaningful messages
+- Meaningful error handling
 - CORS enabled for frontend integration
 - SQLite database with proper relationships
 
-## Project Structure
+## 📋 Project Structure
 
 ```
-notes/
+notes-app/
 ├── backend/
+│   ├── api/
+│   │   └── index.js              # Main API handler (Vercel)
 │   ├── db/
-│   │   └── database.js          # SQLite database initialization
+│   │   └── database.js           # SQLite database initialization
 │   ├── middleware/
-│   │   ├── auth.js              # JWT authentication middleware
-│   │   └── validation.js        # Input validation middleware
+│   │   ├── auth.js               # JWT authentication
+│   │   └── validation.js         # Input validation
 │   ├── routes/
-│   │   ├── authRoutes.js        # Authentication endpoints
-│   │   └── notesRoutes.js       # Notes CRUD endpoints
+│   │   ├── authRoutes.js         # Authentication endpoints
+│   │   └── notesRoutes.js        # Notes CRUD endpoints
 │   ├── controllers/
-│   │   ├── authController.js    # Authentication logic
-│   │   └── notesController.js   # Notes logic
-│   ├── package.json             # Backend dependencies
-│   ├── .env.example             # Environment variables template
-│   ├── .gitignore               # Git ignore rules
-│   └── server.js                # Main Express server
-└── frontend/
-    ├── css/
-    │   └── styles.css           # Application styling
-    ├── js/
-    │   └── app.js               # Main application logic
-    └── index.html               # Main HTML file
+│   │   ├── authController.js     # Auth logic
+│   │   └── notesController.js    # Notes logic
+│   ├── package.json              # Dependencies
+│   ├── .env                      # Environment variables
+│   └── server.js                 # Express server
+├── docs/
+│   ├── index.html                # Main application
+│   ├── css/
+│   │   └── styles.css            # Styling & accessibility
+│   └── js/
+│       ├── app.js                # Main application logic
+│       ├── accessibility-handler.js  # Accessibility features
+│       ├── vosk-handler.js       # Speech recognition
+│       └── (other utilities)
+├── API/
+│   └── vosk-proxy.js             # Speech model proxy
+├── README.md                     # This file
+├── package.json                  # Root dependencies
+├── vercel.json                   # Deployment configuration
+└── .gitignore                    # Git configuration
 ```
 
-## Installation & Setup
+## 🚀 Installation & Setup
 
 ### Prerequisites
-- **Node.js** (v14 or higher)
+- **Node.js** v14 or higher
 - **npm** (Node Package Manager)
-- **Git** (optional)
+- Git (optional)
 
 ### Backend Setup
 
@@ -78,15 +110,11 @@ notes/
    npm install
    ```
 
-3. **Create environment file:**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Edit `.env` and update values (especially `JWT_SECRET` for production):
+3. **Set environment variables:**
+   Create a `.env` file in the `backend/` directory:
    ```
    PORT=5000
-   JWT_SECRET=your_secret_key_here_change_in_production
+   JWT_SECRET=generate_a_strong_secret_key_here
    DATABASE_PATH=./db/notes.db
    NODE_ENV=development
    ```
@@ -95,34 +123,137 @@ notes/
    ```bash
    npm start
    ```
-   
-   You should see:
-   ```
-   Server is running on http://localhost:5000
-   ```
+   Expected output: `Server is running on http://localhost:5000`
 
 ### Frontend Setup
 
-1. **Navigate to frontend directory:**
+1. **Navigate to docs directory:**
    ```bash
-   cd frontend
+   cd docs
    ```
 
-2. **Open in browser:**
-   - Simply open `index.html` in your web browser, or
-   - Use a local server (Python, Node.js, etc.):
-     ```bash
-     # Using Python 3
-     python -m http.server 8000
-     
-     # Or using Node.js http-server (install: npm install -g http-server)
-     http-server
-     ```
+2. **Serve locally** (choose one):
+   ```bash
+   # Using Python 3
+   python -m http.server 8000
+   
+   # Using Node.js http-server
+   npx http-server
+   ```
 
-3. **Access the application:**
-   - Open your browser and navigate to `http://localhost:8000` (or the appropriate port)
+3. **Open in browser:**
+   - Navigate to `http://localhost:8000`
 
-## API Documentation
+## 🎯 Using the Application
+
+### Getting Started
+
+1. **Register a new account** with username, email, and password
+2. **Login** with your credentials
+3. **Click "+ New Note"** to create your first note
+4. **Use the editor** to write with rich text formatting or voice input
+5. **Save** to store your note
+
+### Voice-to-Text (Speech Recognition)
+
+1. In the accessibility panel, click **"Load Model"** for your preferred language
+2. Wait for the model to download (~30-90 seconds, first time only)
+3. Click **"Start Recording"** when ready
+4. Speak naturally into your microphone
+5. Your speech is converted to text in real-time
+6. Click **"Stop Recording"** when done
+7. Text is inserted into your note
+
+**Supported Languages:**
+- 🇬🇧 English (40MB)
+- 🇵🇹 Portuguese (31MB)
+- 🇫🇷 French (41MB)
+- 🇨🇳 Chinese (42MB)
+
+### Accessibility Features
+
+**Text-to-Speech (ReadAloud):**
+- Click the speaker icon to read your note aloud
+- Select from available system voices
+- Control playback speed
+
+**Screen Magnifier:**
+- Press `Ctrl+Alt+M` or click the magnifier button
+- Move your mouse to see 2x magnified area
+- Perfect for detailed reading
+
+**Zoom Controls:**
+- Use `Ctrl+Plus` to zoom in
+- Use `Ctrl+Minus` to zoom out
+- Use `Ctrl+0` to reset zoom
+
+**Keyboard Shortcuts:**
+| Shortcut | Action |
+|----------|--------|
+| `Tab` | Navigate between elements |
+| `Enter` | Submit forms |
+| `Ctrl+Alt+M` | Toggle magnifier |
+| `Ctrl+Plus` | Zoom in |
+| `Ctrl+Minus` | Zoom out |
+| `Ctrl+0` | Reset zoom |
+| `Shift+F10` | Open context menu |
+| `Alt+H` | Focus on heading |
+
+**Rich Text Formatting:**
+- **Bold:** `Ctrl+B` or use toolbar
+- **Italic:** `Ctrl+I` or use toolbar
+- **Underline:** `Ctrl+U` or use toolbar
+- **Code Block:** Toolbar button
+- **Lists:** Toolbar buttons
+
+### Managing Notes
+
+**View Notes:**
+- All your notes appear in the left sidebar
+- Click any note to open and edit
+- Active note has a blue indicator
+
+**Edit Notes:**
+- Click note title to edit the heading
+- Edit content in the main editor
+- Character count shows progress (0-10,000)
+- Click "Save" to store changes
+
+**Delete Notes:**
+- Open the note to delete
+- Click "Delete" button
+- Confirm deletion
+- Note is removed from database
+
+**Search & Filter:**
+- Notes are sorted by most recently updated
+- Sidebar shows last updated date
+
+## 🔐 Security
+
+✅ **Password Security**
+- Passwords hashed with bcryptjs (10 salt rounds)
+- Never stored in plain text
+
+✅ **Authentication**
+- JWT tokens with 7-day expiration
+- Token required for all note operations
+- Tokens validated on every request
+
+✅ **Authorization**
+- Users can only access their own notes
+- Database enforces user-note relationships
+
+✅ **Input Validation**
+- All inputs validated server-side
+- SQL injection prevention via parameterized queries
+- XSS protection through proper input handling
+
+✅ **Data Privacy**
+- Your notes are personal and encrypted in transit
+- Only you can access your notes
+
+## 🌐 API Documentation
 
 ### Base URL
 ```
@@ -132,347 +263,126 @@ http://localhost:5000/api
 ### Authentication Endpoints
 
 #### Register User
-- **Endpoint:** `POST /auth/register`
-- **Description:** Create a new user account
-- **Request Body:**
-  ```json
-  {
+```
+POST /api/auth/register
+
+Request:
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "secure_password_123"
+}
+
+Response (Success):
+{
+  "success": true,
+  "message": "User registered successfully",
+  "data": {
+    "userId": 1,
     "username": "john_doe",
     "email": "john@example.com",
-    "password": "secure_password_123"
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
-  ```
-- **Validation Rules:**
-  - Username: 3-50 characters
-  - Email: Valid email format
-  - Password: Minimum 6 characters
-- **Response (Success):**
-  ```json
-  {
-    "success": true,
-    "message": "User registered successfully",
-    "data": {
-      "userId": 1,
-      "username": "john_doe",
-      "email": "john@example.com",
-      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-    }
-  }
-  ```
-- **Response (Error):**
-  ```json
-  {
-    "success": false,
-    "message": "Validation failed",
-    "errors": [
-      "Username must be at least 3 characters long",
-      "Invalid email format"
-    ]
-  }
-  ```
+}
+```
 
 #### Login User
-- **Endpoint:** `POST /auth/login`
-- **Description:** Authenticate and receive JWT token
-- **Request Body:**
-  ```json
-  {
+```
+POST /api/auth/login
+
+Request:
+{
+  "username": "john_doe",
+  "password": "secure_password_123"
+}
+
+Response (Success):
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "userId": 1,
     "username": "john_doe",
-    "password": "secure_password_123"
+    "email": "john@example.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
-  ```
-- **Response (Success):**
-  ```json
-  {
-    "success": true,
-    "message": "Login successful",
-    "data": {
-      "userId": 1,
-      "username": "john_doe",
-      "email": "john@example.com",
-      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-    }
-  }
-  ```
-- **Response (Error):**
-  ```json
-  {
-    "success": false,
-    "message": "Invalid username or password"
-  }
-  ```
+}
+```
 
 ### Notes Endpoints
 
-**All notes endpoints require authentication:**
-- Include `Authorization: Bearer <token>` header in all requests
+**All endpoints require:** `Authorization: Bearer <token>`
 
 #### Get All Notes
-- **Endpoint:** `GET /notes`
-- **Description:** Retrieve all notes for the authenticated user
-- **Headers:**
-  ```
-  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-  ```
-- **Response:**
-  ```json
-  {
-    "success": true,
-    "message": "Notes retrieved successfully",
-    "data": [
-      {
-        "id": 1,
-        "user_id": 1,
-        "title": "My First Note",
-        "content": "This is my first note content",
-        "created_at": "2024-01-15T10:30:00.000Z",
-        "updated_at": "2024-01-15T10:30:00.000Z"
-      },
-      {
-        "id": 2,
-        "user_id": 1,
-        "title": "Shopping List",
-        "content": "Milk, eggs, bread",
-        "created_at": "2024-01-16T14:20:00.000Z",
-        "updated_at": "2024-01-16T14:20:00.000Z"
-      }
-    ]
-  }
-  ```
+```
+GET /api/notes
 
-#### Get Single Note
-- **Endpoint:** `GET /notes/:id`
-- **Description:** Retrieve a specific note by ID
-- **Parameters:**
-  - `id` (integer): Note ID
-- **Response:**
-  ```json
-  {
-    "success": true,
-    "message": "Note retrieved successfully",
-    "data": {
+Response:
+{
+  "success": true,
+  "data": [
+    {
       "id": 1,
-      "user_id": 1,
       "title": "My First Note",
-      "content": "This is my first note content",
-      "created_at": "2024-01-15T10:30:00.000Z",
-      "updated_at": "2024-01-15T10:30:00.000Z"
+      "content": "Note content...",
+      "created_at": "2024-01-15T10:30:00Z",
+      "updated_at": "2024-01-15T10:30:00Z"
     }
-  }
-  ```
-- **Error Response:**
-  ```json
-  {
-    "success": false,
-    "message": "Note not found"
-  }
-  ```
+  ]
+}
+```
 
 #### Create Note
-- **Endpoint:** `POST /notes`
-- **Description:** Create a new note
-- **Request Body:**
-  ```json
-  {
-    "title": "My New Note",
-    "content": "This is the content of my note"
+```
+POST /api/notes
+
+Request:
+{
+  "title": "My Note",
+  "content": "Note content"
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "id": 3,
+    "title": "My Note",
+    "content": "Note content",
+    "created_at": "2024-01-17T08:15:00Z"
   }
-  ```
-- **Validation Rules:**
-  - Title: Required, 1-255 characters
-  - Content: Optional, maximum 10,000 characters
-- **Response:**
-  ```json
-  {
-    "success": true,
-    "message": "Note created successfully",
-    "data": {
-      "id": 3,
-      "user_id": 1,
-      "title": "My New Note",
-      "content": "This is the content of my note",
-      "created_at": "2024-01-17T08:15:00.000Z",
-      "updated_at": "2024-01-17T08:15:00.000Z"
-    }
-  }
-  ```
+}
+```
 
 #### Update Note
-- **Endpoint:** `PUT /notes/:id`
-- **Description:** Update an existing note
-- **Parameters:**
-  - `id` (integer): Note ID
-- **Request Body:**
-  ```json
-  {
-    "title": "Updated Title",
-    "content": "Updated content"
-  }
-  ```
-- **Validation Rules:**
-  - Title: Required, 1-255 characters
-  - Content: Optional, maximum 10,000 characters
-- **Response:**
-  ```json
-  {
-    "success": true,
-    "message": "Note updated successfully",
-    "data": {
-      "id": 3,
-      "user_id": 1,
-      "title": "Updated Title",
-      "content": "Updated content",
-      "created_at": "2024-01-17T08:15:00.000Z",
-      "updated_at": "2024-01-17T09:20:00.000Z"
-    }
-  }
-  ```
+```
+PUT /api/notes/:id
+
+Request:
+{
+  "title": "Updated Title",
+  "content": "Updated content"
+}
+
+Response:
+{
+  "success": true,
+  "data": { /* updated note */ }
+}
+```
 
 #### Delete Note
-- **Endpoint:** `DELETE /notes/:id`
-- **Description:** Delete a note
-- **Parameters:**
-  - `id` (integer): Note ID
-- **Response:**
-  ```json
-  {
-    "success": true,
-    "message": "Note deleted successfully",
-    "data": {
-      "id": 3
-    }
-  }
-  ```
-- **Error Response:**
-  ```json
-  {
-    "success": false,
-    "message": "Note not found"
-  }
-  ```
+```
+DELETE /api/notes/:id
 
-### Error Handling
-
-Common error scenarios:
-
-**Unauthorized (401):**
-```json
+Response:
 {
-  "success": false,
-  "message": "No token provided. Please log in."
+  "success": true,
+  "message": "Note deleted successfully"
 }
 ```
 
-**Invalid Input (400):**
-```json
-{
-  "success": false,
-  "message": "Validation failed",
-  "errors": ["Title cannot be empty"]
-}
-```
-
-**Not Found (404):**
-```json
-{
-  "success": false,
-  "message": "Note not found"
-}
-```
-
-**Server Error (500):**
-```json
-{
-  "success": false,
-  "message": "Internal server error",
-  "error": "Error details"
-}
-```
-
-## Usage Examples
-
-### Using cURL
-
-**Register:**
-```bash
-curl -X POST http://localhost:5000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "john_doe",
-    "email": "john@example.com",
-    "password": "secure_password"
-  }'
-```
-
-**Login:**
-```bash
-curl -X POST http://localhost:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "john_doe",
-    "password": "secure_password"
-  }'
-```
-
-**Get All Notes (replace TOKEN with actual token):**
-```bash
-curl -X GET http://localhost:5000/api/notes \
-  -H "Authorization: Bearer TOKEN"
-```
-
-**Create Note:**
-```bash
-curl -X POST http://localhost:5000/api/notes \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer TOKEN" \
-  -d '{
-    "title": "My Note",
-    "content": "Note content"
-  }'
-```
-
-**Update Note (replace ID with actual note ID):**
-```bash
-curl -X PUT http://localhost:5000/api/notes/1 \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer TOKEN" \
-  -d '{
-    "title": "Updated Note",
-    "content": "Updated content"
-  }'
-```
-
-**Delete Note:**
-```bash
-curl -X DELETE http://localhost:5000/api/notes/1 \
-  -H "Authorization: Bearer TOKEN"
-```
-
-## Security Features
-
-✅ **Password Security**
-- Passwords hashed using bcryptjs with 10 salt rounds
-- Never stored in plain text
-
-✅ **Authentication**
-- JWT tokens with 7-day expiration
-- Token required for all note operations
-- Tokens validated on every protected route
-
-✅ **Authorization**
-- Users can only access their own notes
-- Database enforces user-note relationship with foreign keys
-
-✅ **Input Validation**
-- All user inputs validated server-side
-- SQL injection prevented with parameterized queries
-- XSS protection through proper input handling
-
-✅ **CORS**
-- Configured to accept requests from frontend
-- Prevents unauthorized cross-origin requests
-
-## Database Schema
+## 📚 Database Schema
 
 ### Users Table
 ```sql
@@ -499,103 +409,121 @@ CREATE TABLE notes (
 );
 ```
 
-## Technologies Used
+## 🛠 Technologies Used
 
 **Backend:**
-- **Express.js** - Web framework
-- **SQLite3** - Database
-- **bcryptjs** - Password hashing
-- **jsonwebtoken** - JWT authentication
-- **CORS** - Cross-Origin Resource Sharing
-- **dotenv** - Environment configuration
+- Express.js - Web framework
+- SQLite3 - Database
+- bcryptjs - Password hashing
+- jsonwebtoken - JWT authentication
+- CORS - Cross-origin requests
+- dotenv - Configuration
 
 **Frontend:**
-- **HTML5** - Structure
-- **CSS3** - Styling with CSS variables
-- **Vanilla JavaScript** - Application logic
-- **Fetch API** - HTTP requests
+- HTML5 - Semantic markup
+- CSS3 - Styling with accessibility
+- Vanilla JavaScript - No framework dependencies
+- Vosk-Browser - Offline speech recognition
+- Fetch API - HTTP requests
 
-## Future Enhancements
+**Deployment:**
+- Vercel - Frontend & backend hosting
+- Supabase Storage - ML model hosting
 
-📝 Potential features for future versions:
-- Note categories/tags
-- Search functionality
+## 🚀 Deployment
+
+### Deploy to Vercel
+
+1. **Push to GitHub:**
+   ```bash
+   git add .
+   git commit -m "Your message"
+   git push origin main
+   ```
+
+2. **Create Vercel project:**
+   - Go to https://vercel.com
+   - Import GitHub repository
+   - Set environment variables in dashboard
+
+3. **Deploy:**
+   ```bash
+   vercel --prod
+   ```
+
+4. **Your app is live** at the Vercel URL
+
+## 🧠 Future Enhancements
+
+📌 **Planned Features:**
+- Note categories and tags
+- Full-text search
 - Note sharing between users
-- Rich text editor
-- Note history/versioning
-- Dark mode toggle
-- Export notes to PDF/Markdown
 - Collaborative editing
+- Note history/versioning
+- Export to PDF/Markdown/Word
+- Dark/Light theme toggle
 - Offline support with service workers
-- Cloud synchronization
+- Cloud backup synchronization
+- Note encryption
+- Custom fonts for dyslexia support
+- High DPI (Retina) display support
+- Mobile app (iOS/Android)
 
-## Troubleshooting
+## 🐛 Troubleshooting
 
-**Port 5000 already in use:**
-- Change PORT in `.env` file or kill existing process
-- On Windows: `netstat -ano | findstr :5000` then `taskkill /PID <PID> /F`
+**Backend won't start:**
+```bash
+# Check if port is in use
+netstat -ano | findstr :5000
+
+# Kill process (Windows)
+taskkill /PID <PID> /F
+
+# Change port in .env
+PORT=5001
+```
 
 **CORS errors:**
 - Ensure backend is running on http://localhost:5000
-- Check frontend URL in browser matches API_BASE_URL in `js/app.js`
+- Check frontend URL matches in app.js
+- Verify CORS is enabled in backend
 
-**Database errors:**
-- Delete `db/notes.db` to reset database (will lose all data)
-- Ensure `db` directory is writable
+**Models not loading:**
+- Check internet connection
+- Ensure Supabase bucket has public access
+- Verify model files exist in Supabase
+- Try different language model
 
 **Token expired:**
-- Clear browser localStorage and re-login
+- Clear browser localStorage
+- Re-login
 - Tokens expire after 7 days
 
-**Blank notes list:**
-- Check browser console for errors (F12)
-- Ensure JWT token is valid
-- Try logging out and logging back in
+**Notes not appearing:**
+- Check browser console (F12) for errors
+- Ensure token is valid
+- Try logging out and back in
 
-## Development Notes
+**Microphone not working:**
+- Check browser permissions (allow microphone)
+- Ensure HTTPS is enabled
+- Try a different browser
 
-### Running Both Backend and Frontend
+## 📞 Support & Feedback
 
-1. **Terminal 1 - Backend:**
-   ```bash
-   cd backend
-   npm start
-   ```
+For issues or suggestions:
+1. Check this README for troubleshooting
+2. Review browser console for error messages
+3. Ensure all prerequisites are installed
+4. Check network connectivity
 
-2. **Terminal 2 - Frontend:**
-   ```bash
-   cd frontend
-   python -m http.server 8000
-   # or
-   http-server
-   ```
+## 📄 License
 
-3. Open browser to frontend URL (usually `http://localhost:8000`)
-
-### Database Management
-
-The SQLite database is automatically created on first run. To reset:
-```bash
-# Delete the database file
-rm db/notes.db
-
-# Restart the server to recreate
-npm start
-```
-
-### JWT Token Debugging
-
-Decode JWT tokens at [jwt.io](https://jwt.io) for debugging purposes.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For issues or questions, please refer to the project documentation or contact the development team.
+MIT License - Feel free to use for personal and commercial projects
 
 ---
 
-**Last Updated:** December 16, 2024
-**Version:** 1.0.0
+**Version:** 2.0.0  
+**Last Updated:** February 7, 2026  
+**Built with ❤️ for accessibility**
