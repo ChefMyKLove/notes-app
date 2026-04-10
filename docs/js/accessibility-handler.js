@@ -15,7 +15,11 @@ class AccessibilityHandler {
       zoom: 100,
       magnifier: false,
       highContrast: false,
-      fontSize: 'medium'
+      fontSize: 'medium',
+      dyslexiaFont: false,
+      wordSpacing: 'normal', // normal, medium, wide
+      readingGuide: false,
+      distractionFree: false
     };
     
     // Text-to-Speech
@@ -27,6 +31,10 @@ class AccessibilityHandler {
     // Magnifier
     this.magnifierElement = null;
     this.magnifierActive = false;
+
+    // Reading Guide
+    this.readingGuideElement = null;
+    this.readingGuideActive = false;
     
     // Load saved settings
     this.loadSettings();
@@ -496,6 +504,200 @@ class AccessibilityHandler {
   }
   
   /**
+   * Toggle Dyslexia-Friendly Font
+   */
+  toggleDyslexiaFont() {
+    this.settings.dyslexiaFont = !this.settings.dyslexiaFont;
+    
+    if (this.settings.dyslexiaFont) {
+      document.documentElement.style.fontFamily = 'OpenDyslexic, Verdana, Arial, sans-serif';
+      document.body.style.fontFamily = 'OpenDyslexic, Verdana, Arial, sans-serif';
+    } else {
+      document.documentElement.style.fontFamily = '';
+      document.body.style.fontFamily = '';
+    }
+    
+    // Update button
+    const btn = document.getElementById('dyslexia-font-btn');
+    if (btn) {
+      btn.textContent = this.settings.dyslexiaFont ? 'Font: Dyslexia-Friendly' : 'Font: Standard';
+      btn.classList.toggle('active');
+    }
+    
+    this.saveSettings();
+    return this.settings.dyslexiaFont;
+  }
+    }
+    
+    // Update button
+    const btn = document.getElementById('dyslexia-font-btn');
+    if (btn) {
+      btn.textContent = this.settings.dyslexiaFont ? 'Font: Dyslexia-Friendly' : 'Font: Standard';
+      btn.classList.toggle('active');
+    }
+    
+    this.saveSettings();
+    return this.settings.dyslexiaFont;
+  }
+
+  /**
+   * Adjust word/letter spacing
+   */
+  adjustWordSpacing(direction) {
+    const spacings = { normal: 0, medium: 1, wide: 2 };
+    const spacingValues = [0, 1, 2];
+    const currentIndex = spacingValues.indexOf(spacings[this.settings.wordSpacing]);
+    let newIndex = currentIndex + direction;
+    
+    if (newIndex < 0) newIndex = 0;
+    if (newIndex > 2) newIndex = 2;
+    
+    const newSpacing = Object.keys(spacings)[newIndex];
+    this.settings.wordSpacing = newSpacing;
+    
+    // Apply spacing
+    const spacingMap = {
+      normal: { letter: '0.05em', word: '0.25em', line: '1.5' },
+      medium: { letter: '0.1em', word: '0.5em', line: '1.8' },
+      wide: { letter: '0.15em', word: '0.75em', line: '2' }
+    };
+    
+    const spacing = spacingMap[newSpacing];
+    document.documentElement.style.letterSpacing = spacing.letter;
+    document.documentElement.style.wordSpacing = spacing.word;
+    document.documentElement.style.lineHeight = spacing.line;
+    
+    // Update button
+    const valueDisplay = document.getElementById('spacing-value');
+    if (valueDisplay) {
+      valueDisplay.textContent = newSpacing.charAt(0).toUpperCase() + newSpacing.slice(1);
+    }
+    
+    this.saveSettings();
+    return newSpacing;
+  }
+
+  /**
+   * Toggle Reading Guide (horizontal line following cursor)
+   */
+  toggleReadingGuide() {
+    this.readingGuideActive = !this.readingGuideActive;
+    
+    if (this.readingGuideActive) {
+      this.enableReadingGuide();
+    } else {
+      this.disableReadingGuide();
+    }
+    
+    // Update button
+    const btn = document.getElementById('reading-guide-btn');
+    if (btn) {
+      btn.textContent = this.readingGuideActive ? 'Reading Guide: ON' : 'Reading Guide: OFF';
+      btn.classList.toggle('active');
+    }
+    
+    this.saveSettings();
+    return this.readingGuideActive;
+  }
+
+  enableReadingGuide() {
+    if (this.readingGuideElement) return;
+    
+    this.readingGuideElement = document.createElement('div');
+    this.readingGuideElement.id = 'reading-guide';
+    this.readingGuideElement.style.cssText = `
+      position: fixed;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #FF6B6B, transparent);
+      pointer-events: none;
+      z-index: 9999;
+      display: none;
+      box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+    `;
+    
+    document.body.appendChild(this.readingGuideElement);
+    
+    // Track mouse movement
+    this.readingGuideMouseMove = (e) => {
+      if (!this.readingGuideElement) return;
+      this.readingGuideElement.style.top = e.clientY + 'px';
+      this.readingGuideElement.style.display = 'block';
+    };
+    
+    document.addEventListener('mousemove', this.readingGuideMouseMove);
+  }
+
+  disableReadingGuide() {
+    if (this.readingGuideElement) {
+      this.readingGuideElement.remove();
+      this.readingGuideElement = null;
+    }
+    
+    if (this.readingGuideMouseMove) {
+      document.removeEventListener('mousemove', this.readingGuideMouseMove);
+    }
+  }
+    };
+    
+    document.addEventListener('mousemove', this.readingGuideMouseMove);
+  }
+
+  disableReadingGuide() {
+    if (this.readingGuideElement) {
+      this.readingGuideElement.remove();
+      this.readingGuideElement = null;
+    }
+    
+    if (this.readingGuideMouseMove) {
+      document.removeEventListener('mousemove', this.readingGuideMouseMove);
+    }
+  }
+
+  /**
+   * Toggle Distraction-Free Mode (hide sidebar and toolbars)
+   */
+  toggleDistractionFree() {
+    this.settings.distractionFree = !this.settings.distractionFree;
+    
+    if (this.settings.distractionFree) {
+      // Hide sidebar
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar) sidebar.style.display = 'none';
+      
+      // Hide Vosk controls
+      const voskControls = document.getElementById('vosk-controls');
+      if (voskControls) voskControls.style.display = 'none';
+      
+      // Make main content full width
+      const mainContent = document.querySelector('.main-content');
+      if (mainContent) mainContent.style.width = '100%';
+    } else {
+      // Show sidebar
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar) sidebar.style.display = '';
+      
+      // Show Vosk controls
+      const voskControls = document.getElementById('vosk-controls');
+      if (voskControls) voskControls.style.display = '';
+      
+      // Reset main content width
+      const mainContent = document.querySelector('.main-content');
+      if (mainContent) mainContent.style.width = '';
+    }
+    
+    // Update button
+    const btn = document.getElementById('distraction-free-btn');
+    if (btn) {
+      btn.textContent = this.settings.distractionFree ? 'Distraction-Free: ON' : 'Distraction-Free: OFF';
+      btn.classList.toggle('active');
+    }
+    
+    this.saveSettings();
+    return this.settings.distractionFree;
+  }
+
+  /**
    * Get current status
    */
   getStatus() {
@@ -505,6 +707,10 @@ class AccessibilityHandler {
       zoom: this.settings.zoom,
       magnifier: this.magnifierActive,
       highContrast: this.settings.highContrast,
+      dyslexiaFont: this.settings.dyslexiaFont,
+      wordSpacing: this.settings.wordSpacing,
+      readingGuide: this.readingGuideActive,
+      distractionFree: this.settings.distractionFree,
       voicesLoaded: this.voices.length,
       available: true
     };

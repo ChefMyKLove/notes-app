@@ -728,6 +728,30 @@ resetZoom?.addEventListener('click', () => accessibilityHandler?.resetZoom());
     accessibilityHandler?.toggleMagnifier();
     toggleMagnifier.classList.toggle('active');
   });
+
+  // Dyslexia Font Toggle
+  document.getElementById('dyslexia-font-btn')?.addEventListener('click', () => {
+    accessibilityHandler?.toggleDyslexiaFont();
+  });
+
+  // Word Spacing Controls
+  document.getElementById('spacing-decrease-btn')?.addEventListener('click', () => {
+    accessibilityHandler?.adjustWordSpacing(-1);
+  });
+  
+  document.getElementById('spacing-increase-btn')?.addEventListener('click', () => {
+    accessibilityHandler?.adjustWordSpacing(1);
+  });
+
+  // Reading Guide Toggle
+  document.getElementById('reading-guide-btn')?.addEventListener('click', () => {
+    accessibilityHandler?.toggleReadingGuide();
+  });
+
+  // Distraction-Free Mode Toggle
+  document.getElementById('distraction-free-btn')?.addEventListener('click', () => {
+    accessibilityHandler?.toggleDistractionFree();
+  });
   
   // Language Selection
  languageSelect?.addEventListener('change', (e) => {
