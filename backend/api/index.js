@@ -11,6 +11,7 @@ const app = express();
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
+      'https://notes.chefmyklove.com',
       'https://chefmyklove.github.io',
       'http://localhost:5500',
       'http://127.0.0.1:5500',
